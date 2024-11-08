@@ -1,0 +1,352 @@
+; @file enemy.inc
+; @authors Jack Kertscher and Garrett Rhoads
+; @brief Enemy logic
+; @date 2024-11-02
+
+if !def(ENEMY_INC)
+def ENEMY_INC equ 1
+
+include "include/pointers.inc"
+include "include/graphics.inc"
+include "include/sprites.inc"
+include "include/character.inc"
+
+; Enemy animation constants
+def INIT_ENEMY_ANIMATION_DELAY      equ ($0F)
+def INIT_ENEMY_MOVEMENT_DELAY       equ ($03)
+
+def CHARACTER_COLLISION_RANGE_X     equ ($07)
+def CHARACTER_COLLISION_RANGE_Y     equ ($0F)
+
+; Relative memory position of enemy traits from \1
+rsreset
+def ENEMY_FIRST_ANI_FRAME_HEAD     rb 1 
+def ENEMY_FIRST_ANI_FRAME_LEGS     rb 1 
+def ENEMY_LAST_ANI_FRAME_HEAD      rb 1
+def ENEMY_ANI_DELAY                rb 1
+def ENEMY_ANI_DELAY_STATE          rb 1
+def ENEMY_SPRITE_WORLD_X           rb 1
+def ENEMY_SPRITE_WORLD_Y           rb 1
+def DISTANCE_TO_CHAR_X             rb 1
+def DISTANCE_TO_CHAR_Y             rb 1
+def ENEMY_SPRITE_ANIMATION         rb 1
+def PREV_ENEMY_SPRITE_ANIMATION    rb 1
+def ENEMY_MOVEMENT_DELAY           rb 1
+def ENEMY_MOVEMENT_DELAY_STATE     rb 1
+
+; Initializing the enemy
+; \1: Enemy data memory chunk
+; \2: Enemy head OAM location, \3: Enemy legs OAM location
+macro InitEnemy
+    InitEnemyAnimation \1, \2, \3
+
+    copy [\1 + ENEMY_SPRITE_WORLD_X], \4
+    copy [\1 + ENEMY_SPRITE_WORLD_Y], \5
+    copy [\1 + DISTANCE_TO_CHAR_X], CHARACTER_SPRITE_HEAD_X_START - \4
+    copy [\1 + DISTANCE_TO_CHAR_Y], CHARACTER_SPRITE_HEAD_Y_START - \5
+
+    copy [\1 + ENEMY_MOVEMENT_DELAY], INIT_ENEMY_MOVEMENT_DELAY
+    copy [\1 + ENEMY_MOVEMENT_DELAY_STATE], INITIAL_DELAY
+
+    ; Init the head and legs of our ENEMY sprite
+    copy [\2 + OAMA_X], \4
+    copy [\2 + OAMA_Y], \5
+    copy [\2 + OAMA_TILEID], [\1 + ENEMY_FIRST_ANI_FRAME_HEAD]
+    copy [\2 + OAMA_FLAGS], OAMF_PAL0 | OAMF_XFLIP
+    
+    copy [\3 + OAMA_X], \6
+    copy [\3 + OAMA_Y], \7
+    copy [\3 + OAMA_TILEID], [\1 + ENEMY_FIRST_ANI_FRAME_LEGS]
+    copy [\3 + OAMA_FLAGS], OAMF_PAL0 | OAMF_XFLIP
+endm
+
+; Initializing the animations for the enemy
+; \1: Enemy data memory chunk
+; \2: Enemy head OAM location, \3: Enemy legs OAM location
+macro InitEnemyAnimation
+    copy [\1 + ENEMY_FIRST_ANI_FRAME_HEAD],    (SIDE_ANIMATION_START + ENEMY_ANIMATION_OFFSET)
+    copy [\1 + ENEMY_FIRST_ANI_FRAME_LEGS],    (SIDE_ANIMATION_START + LEGS_TILE_OFFSET + ENEMY_ANIMATION_OFFSET)
+    copy [\1 + ENEMY_LAST_ANI_FRAME_HEAD],     (SIDE_ANIMATION_END + ENEMY_ANIMATION_OFFSET)
+    
+    copy [\1 + ENEMY_SPRITE_ANIMATION],        (RIGHT_ANIMATION_FLAG)
+    copy [\1 + PREV_ENEMY_SPRITE_ANIMATION],   (IDLE_ANIMATION_FLAG)
+    copy [\1 + ENEMY_ANI_DELAY],               (INIT_ENEMY_ANIMATION_DELAY)
+    copy [\1 + ENEMY_ANI_DELAY_STATE],         (INITIAL_DELAY)
+endm
+
+; updates the distance from enemy to the character in the x direction
+; \1: Enemy data memory chunk
+; \2: Enemy head OAM location, \3: Enemy legs OAM location
+macro UpdateDistanceToCharX
+    ld a, [CHARACTER_SPRITE_WORLD_X]
+    ld b, a
+    ld a, [\1 + ENEMY_SPRITE_WORLD_X]
+    cp a, b
+    jr c, .less_than_x\@
+        ; a >= b
+        sub b
+        ld [\1 + DISTANCE_TO_CHAR_X], a
+        jr .end_update_distance_x\@
+    .less_than_x\@
+        ld a, [\1 + ENEMY_SPRITE_WORLD_X]
+        ld b, a
+        ld a, [CHARACTER_SPRITE_WORLD_X]
+        sub b
+        ld [\1 + DISTANCE_TO_CHAR_X], a
+    .end_update_distance_x\@
+endm
+
+; updates the distance from enemy to the character in the y direction
+; \1: Enemy data memory chunk
+; \2: Enemy head OAM location, \3: Enemy legs OAM location
+macro UpdateDistanceToCharY
+    ld a, [CHARACTER_SPRITE_WORLD_Y]
+    ld b, a
+    ld a, [\1 + ENEMY_SPRITE_WORLD_Y]
+    cp a, b
+    jr c, .less_than_y\@
+        ; a >= b
+        sub b
+        ld [\1 + DISTANCE_TO_CHAR_Y], a
+        jr .end_update_distance_y\@
+    .less_than_y\@
+        ld a, [\1 + ENEMY_SPRITE_WORLD_Y]
+        ld b, a
+        ld a, [CHARACTER_SPRITE_WORLD_Y]
+        sub b
+        ld [\1 + DISTANCE_TO_CHAR_Y], a
+    .end_update_distance_y\@
+endm
+
+; updates enemy movement in the x direction
+; \1: Enemy data memory chunk
+; \2: Enemy head OAM location, \3: Enemy legs OAM location
+macro UpdateEnemyX
+    ld a, [CHARACTER_SPRITE_WORLD_X]
+    ld b, a
+    ld a, [\1 + ENEMY_SPRITE_WORLD_X]
+    cp a, b
+    jr c, .move_right\@
+    ; enemy is to the right of character
+        dec a
+        ld [\1 + ENEMY_SPRITE_WORLD_X], a
+        copy [\1 + ENEMY_SPRITE_ANIMATION], LEFT_ANIMATION_FLAG
+    jr .end_update_x\@
+    .move_right\@
+        inc a
+        ld [\1 + ENEMY_SPRITE_WORLD_X], a
+        copy [\1 + ENEMY_SPRITE_ANIMATION], RIGHT_ANIMATION_FLAG
+    .end_update_x\@
+endm
+
+; updates enemy movement in the y direction
+; \1: Enemy data memory chunk
+; \2: Enemy head OAM location, \3: Enemy legs OAM location
+macro UpdateEnemyY
+    ld a, [CHARACTER_SPRITE_WORLD_Y]
+    ld b, a
+    ld a, [\1 + ENEMY_SPRITE_WORLD_Y]
+    cp a, b
+    jr c, .move_down\@
+    ; enemy is above the character
+        dec a
+        ld [\1 + ENEMY_SPRITE_WORLD_Y], a
+        copy [\1 + ENEMY_SPRITE_ANIMATION], UP_ANIMATION_FLAG
+    jr .end_update_y\@
+    .move_down\@
+        inc a
+        ld [\1 + ENEMY_SPRITE_WORLD_Y], a
+        copy [\1 + ENEMY_SPRITE_ANIMATION], DOWN_ANIMATION_FLAG
+    .end_update_y\@
+endm
+
+; Path finding from the enemy to character
+; \1: Enemy data memory chunk
+; \2: Enemy head OAM location, \3: Enemy legs OAM location
+macro EnemyPathfinding
+    copy [\1 + PREV_ENEMY_SPRITE_ANIMATION], [\1 + ENEMY_SPRITE_ANIMATION]
+
+    ld a, [\1 + DISTANCE_TO_CHAR_Y]
+    ld b, a
+    ld a, [\1 + DISTANCE_TO_CHAR_X]
+    ; move in which ever axis is furthest away from the character
+    cp a, b
+    jp c, .move_Y\@
+    ; move X
+        UpdateEnemyX \1, \2, \3
+        UpdateEnemyAnimationX \1, \2, \3
+        jr .end_pathfinding\@
+    .move_Y\@
+        UpdateEnemyY \1, \2, \3
+        UpdateEnemyAnimationY \1, \2, \3
+    .end_pathfinding\@
+endm
+
+; Overarching enemy movement logic
+; \1: Enemy data memory chunk
+; \2: Enemy head OAM location, \3: Enemy legs OAM location
+macro UpdateEnemyMovement
+    ld a, [\1 + ENEMY_MOVEMENT_DELAY]
+    ld b, a
+    ld a, [\1 + ENEMY_MOVEMENT_DELAY_STATE]
+    inc a
+    and a, b
+    ld [\1 + ENEMY_MOVEMENT_DELAY_STATE], a
+    jp nz, .end_movement\@
+
+    EnemyPathfinding \1, \2, \3
+    UpdateDistanceToCharX \1, \2, \3
+    UpdateDistanceToCharY \1, \2, \3
+    .end_movement\@
+    CharacterCollision \1, \2, \3
+endm
+
+; enemy left animation
+; \1: Enemy data memory chunk
+; \2: Enemy head OAM location, \3: Enemy legs OAM location
+macro EnemySetLeftAnim
+    copy [\1 + ENEMY_FIRST_ANI_FRAME_HEAD], SIDE_ANIMATION_START + ENEMY_ANIMATION_OFFSET
+    copy [\1 + ENEMY_FIRST_ANI_FRAME_LEGS], SIDE_ANIMATION_START + LEGS_TILE_OFFSET + ENEMY_ANIMATION_OFFSET
+    copy [\1 + ENEMY_LAST_ANI_FRAME_HEAD], SIDE_ANIMATION_END + ENEMY_ANIMATION_OFFSET
+    copy [\2 + OAMA_FLAGS], OAMF_PAL0
+    copy [\3 + OAMA_FLAGS], OAMF_PAL0
+endm
+
+; enemy right animation
+; \1: Enemy data memory chunk
+; \2: Enemy head OAM location, \3: Enemy legs OAM location
+macro EnemySetRightAnim
+    copy [\1 + ENEMY_FIRST_ANI_FRAME_HEAD], SIDE_ANIMATION_START + ENEMY_ANIMATION_OFFSET
+    copy [\1 + ENEMY_FIRST_ANI_FRAME_LEGS], SIDE_ANIMATION_START + LEGS_TILE_OFFSET + ENEMY_ANIMATION_OFFSET
+    copy [\1 + ENEMY_LAST_ANI_FRAME_HEAD], SIDE_ANIMATION_END + ENEMY_ANIMATION_OFFSET
+    copy [\2 + OAMA_FLAGS], OAMF_PAL0 | OAMF_XFLIP
+    copy [\3 + OAMA_FLAGS], OAMF_PAL0 | OAMF_XFLIP
+endm
+
+; enemy up animation
+; \1: Enemy data memory chunk
+; \2: Enemy head OAM location, \3: Enemy legs OAM location
+macro EnemySetUpAnim
+    copy [\1 + ENEMY_FIRST_ANI_FRAME_HEAD], UP_ANIMATION_START + ENEMY_ANIMATION_OFFSET
+    copy [\1 + ENEMY_FIRST_ANI_FRAME_LEGS], UP_ANIMATION_START + LEGS_TILE_OFFSET + ENEMY_ANIMATION_OFFSET
+    copy [\1 + ENEMY_LAST_ANI_FRAME_HEAD], UP_ANIMATION_END + ENEMY_ANIMATION_OFFSET
+endm
+
+; enemy down animation
+; \1: Enemy data memory chunk
+; \2: Enemy head OAM location, \3: Enemy legs OAM location
+macro EnemySetDownAnim
+    copy [\1 + ENEMY_FIRST_ANI_FRAME_HEAD], DOWN_ANIMATION_START + ENEMY_ANIMATION_OFFSET
+    copy [\1 + ENEMY_FIRST_ANI_FRAME_LEGS], DOWN_ANIMATION_START + LEGS_TILE_OFFSET + ENEMY_ANIMATION_OFFSET
+    copy [\1 + ENEMY_LAST_ANI_FRAME_HEAD], DOWN_ANIMATION_END + ENEMY_ANIMATION_OFFSET
+endm
+
+; updates the enemy animation in the x direction
+; \1: Enemy data memory chunk
+; \2: Enemy head OAM location, \3: Enemy legs OAM location
+macro UpdateEnemyAnimationX
+    ld a, [CHARACTER_SPRITE_WORLD_X]
+    ld b, a 
+    ld a, [\1 + ENEMY_SPRITE_WORLD_X]
+    cp a, b
+    jr nc, .enemy_left_anim\@
+    .enemy_right_anim\@
+        ld a, [\1 + PREV_ENEMY_SPRITE_ANIMATION]
+        cp RIGHT_ANIMATION_FLAG
+        jp z, .no_x_anim_update\@
+
+        EnemySetRightAnim \1, \2, \3
+        jr .reset_enemy_animation_x\@
+    .enemy_left_anim\@
+        ld a, [\1 + PREV_ENEMY_SPRITE_ANIMATION]
+        cp LEFT_ANIMATION_FLAG
+        jp z, .no_x_anim_update\@
+
+        EnemySetLeftAnim \1, \2, \3
+    .reset_enemy_animation_x\@
+        copy [\2 + OAMA_TILEID], [\1 + ENEMY_FIRST_ANI_FRAME_HEAD]
+        copy [\3 + OAMA_TILEID], [\1 + ENEMY_FIRST_ANI_FRAME_LEGS]
+    .no_x_anim_update\@
+endm
+
+; updates the enemy animation in the y direction
+; \1: Enemy data memory chunk
+; \2: Enemy head OAM location, \3: Enemy legs OAM location
+macro UpdateEnemyAnimationY
+    ld a, [CHARACTER_SPRITE_WORLD_Y]
+    ld b, a
+    ld a, [\1 + ENEMY_SPRITE_WORLD_Y]
+    cp a, b
+    jr c, .enemy_down_anim\@
+    .enemy_up_anim\@
+        ld a, [\1 + PREV_ENEMY_SPRITE_ANIMATION]
+        cp UP_ANIMATION_FLAG
+        jp z, .no_y_anim_update\@
+
+        EnemySetUpAnim \1, \2, \3
+        jr .reset_enemy_animation_y\@
+    .enemy_down_anim\@
+        ld a, [\1 + PREV_ENEMY_SPRITE_ANIMATION]
+        cp DOWN_ANIMATION_FLAG
+        jp z, .no_y_anim_update\@
+
+        EnemySetDownAnim \1, \2, \3
+    .reset_enemy_animation_y\@
+        copy [\2 + OAMA_TILEID], [\1 + ENEMY_FIRST_ANI_FRAME_HEAD]
+        copy [\3 + OAMA_TILEID], [\1 + ENEMY_FIRST_ANI_FRAME_LEGS]
+    .no_y_anim_update\@
+endm
+
+; animates the enemy
+; \1: Enemy data memory chunk
+; \2: Enemy head OAM location, \3: Enemy legs OAM location
+macro AnimateEnemy
+    ; checks wether or not we want to animate on this v-blank
+    ld a, [\1 + ENEMY_ANI_DELAY]
+    ld b, a
+    ld a, [\1 + ENEMY_ANI_DELAY_STATE]
+    inc a
+    and a, b
+    ld [\1 + ENEMY_ANI_DELAY_STATE], a
+    jp nz, .end_animate\@
+    ; if we want to animate check if we need to reset to the begining of the 
+    ; sprite sheet
+    ld a, [\1 + ENEMY_LAST_ANI_FRAME_HEAD]
+    ld b, a
+    ld a, [\2 + OAMA_TILEID]
+    cp a, b
+    jp z, .reset\@
+    ; move the head to the next animation
+    inc a
+    inc a
+    ld [\2 + OAMA_TILEID], a
+    ; move the legs to next animation
+    ld a, [\3 + OAMA_TILEID]
+    inc a
+    inc a
+    ld [\3 + OAMA_TILEID], a
+    jp .end_animate\@
+    ; if we needed to reset set the sprite back to their first animations in
+    ; the sprite sheet
+    .reset\@
+        copy [\2 + OAMA_TILEID], [\1 + ENEMY_FIRST_ANI_FRAME_HEAD]
+        copy [\3 + OAMA_TILEID], [\1 + ENEMY_FIRST_ANI_FRAME_LEGS]
+    .end_animate\@
+endm
+
+; Handles collisions with the character
+; \1: Enemy data memory chunk
+; \2: Enemy head OAM location, \3: Enemy legs OAM location
+macro CharacterCollision
+    ld a, [\1 + DISTANCE_TO_CHAR_X]
+    cp a, CHARACTER_COLLISION_RANGE_X
+    jr nc, .no_collision_enemy\@
+    ld a, [\1 + DISTANCE_TO_CHAR_Y]
+    cp a, CHARACTER_COLLISION_RANGE_Y
+    jr nc, .no_collision_enemy\@
+    ; collision!!!!!!
+    copy [rGSF], rGSF_TITLE
+    .no_collision_enemy\@
+endm
+
+endc
