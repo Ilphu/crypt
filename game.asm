@@ -30,11 +30,14 @@ init_game:
 update_game:
     UpdateJoypad
     call update_character_data
+    call update_enemies_data
     halt
     
     UpdateTimer
     call update_character_visuals
-    call update_enemies
+    call update_enemies_visuals
+
+    ;call update_enemies
     call update_window
     ret
 

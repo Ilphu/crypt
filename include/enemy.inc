@@ -1,4 +1,4 @@
-; @file enemy.inc
+ ; @file enemy.inc
 ; @authors Jack Kertscher and Garrett Rhoads
 ; @brief Enemy logic
 ; @date 2024-11-02
@@ -20,19 +20,22 @@ def CHARACTER_COLLISION_RANGE_Y     equ ($0F)
 
 ; Relative memory position of enemy traits from \1
 rsreset
-def ENEMY_FIRST_ANI_FRAME_HEAD     rb 1 
-def ENEMY_FIRST_ANI_FRAME_LEGS     rb 1 
-def ENEMY_LAST_ANI_FRAME_HEAD      rb 1
-def ENEMY_ANI_DELAY                rb 1
-def ENEMY_ANI_DELAY_STATE          rb 1
-def ENEMY_SPRITE_WORLD_X           rb 1
-def ENEMY_SPRITE_WORLD_Y           rb 1
-def DISTANCE_TO_CHAR_X             rb 1
-def DISTANCE_TO_CHAR_Y             rb 1
-def ENEMY_SPRITE_ANIMATION         rb 1
-def PREV_ENEMY_SPRITE_ANIMATION    rb 1
-def ENEMY_MOVEMENT_DELAY           rb 1
-def ENEMY_MOVEMENT_DELAY_STATE     rb 1
+def ENEMY_FIRST_ANI_FRAME_HEAD      rb 1 
+def ENEMY_FIRST_ANI_FRAME_LEGS      rb 1 
+def ENEMY_LAST_ANI_FRAME_HEAD       rb 1
+def ENEMY_ANI_DELAY                 rb 1
+def ENEMY_ANI_DELAY_STATE           rb 1
+def ENEMY_SPRITE_WORLD_X            rb 1
+def ENEMY_SPRITE_WORLD_Y            rb 1
+def DISTANCE_TO_CHAR_X              rb 1
+def DISTANCE_TO_CHAR_Y              rb 1
+def ENEMY_SPRITE_ANIMATION          rb 1
+def PREV_ENEMY_SPRITE_ANIMATION     rb 1
+def ENEMY_MOVEMENT_DELAY            rb 1
+def ENEMY_MOVEMENT_DELAY_STATE      rb 1
+def ENEMY_INTENDED_MOVEMENT         rb 1
+def ENEMY_ANIM_CHANGED              rb 1
+def ENEMY_COLLISION_FLAGS           rb 1
 
 ; Initializing the enemy
 ; \1: Enemy data memory chunk
@@ -77,6 +80,7 @@ endm
 ; updates the distance from enemy to the character in the x direction
 ; \1: Enemy data memory chunk
 ; \2: Enemy head OAM location, \3: Enemy legs OAM location
+; data only
 macro UpdateDistanceToCharX
     ld a, [CHARACTER_SPRITE_WORLD_X]
     ld b, a
@@ -99,6 +103,7 @@ endm
 ; updates the distance from enemy to the character in the y direction
 ; \1: Enemy data memory chunk
 ; \2: Enemy head OAM location, \3: Enemy legs OAM location
+; data only
 macro UpdateDistanceToCharY
     ld a, [CHARACTER_SPRITE_WORLD_Y]
     ld b, a
@@ -117,6 +122,152 @@ macro UpdateDistanceToCharY
         ld [\1 + DISTANCE_TO_CHAR_Y], a
     .end_update_distance_y\@
 endm
+
+macro IntendedMovementX
+        ld a, [CHARACTER_SPRITE_WORLD_X]
+        ld b, a
+        ld a, [\1 + ENEMY_SPRITE_WORLD_X]
+        cp a, b
+        jr c, .move_right\@
+        ; move left
+            ld a, [\1 + ENEMY_INTENDED_MOVEMENT]
+            set PADB_LEFT, a 
+            ld [\1 + ENEMY_INTENDED_MOVEMENT], a
+            jr .check_diagonal\@
+        .move_right\@
+            ld a, [\1 + ENEMY_INTENDED_MOVEMENT]
+            set PADB_RIGHT, a 
+            ld [\1 + ENEMY_INTENDED_MOVEMENT], a
+            
+    .check_diagonal\@
+endm
+
+macro IntendedMovementY
+    ld a, [CHARACTER_SPRITE_WORLD_Y]
+    ld b, a
+    ld a, [\1 + ENEMY_SPRITE_WORLD_Y]
+    cp a, b
+    jr c, .move_down\@
+    ; move_up
+        ld a, [\1 + ENEMY_INTENDED_MOVEMENT]
+        set PADB_UP, a
+        ld [\1 + ENEMY_INTENDED_MOVEMENT], a
+        jr .end\@
+    .move_down\@
+        ld a, [\1 + ENEMY_INTENDED_MOVEMENT]
+        set PADB_DOWN, a
+        ld [\1 + ENEMY_INTENDED_MOVEMENT], a
+    .end\@
+endm
+
+macro UpdateIntendedMovement
+    xor a
+    ld [\1 + ENEMY_INTENDED_MOVEMENT], a
+    
+    UpdateDistanceToCharX \1, \2, \3
+    UpdateDistanceToCharY \1, \2, \3
+
+    ld a, [\1 + DISTANCE_TO_CHAR_Y]
+    ld b, a
+    ld a, [\1 + DISTANCE_TO_CHAR_X]
+    ; move in which ever axis is furthest away from the character
+    ; If x < y, move y
+    cp a, b
+    jp c, .move_y\@
+        IntendedMovementX \1, \2, \3
+        ld a, [\1 + DISTANCE_TO_CHAR_Y]
+        ld b, a
+        ld a, [\1 + DISTANCE_TO_CHAR_X]
+        cp a, b
+        jr nz, .end\@
+    .move_y\@ 
+        IntendedMovementY \1, \2, \3
+    .end\@
+endm
+
+macro UpdateEnemyCollisionFlags
+    ; top left
+    ld a, ([ENEMY_SPRITE_WORLD_Y] + TILEWIDTH)
+    dec a
+    srl a
+    and 3
+
+    ; address of start of collision map + a
+
+    ld a, [ENEMY_SPRITE_WORLD_X]
+    srl a
+    srl a
+    srl a
+    ld b, a
+    srl a
+    srl a
+    srl a
+    ; address of start of collision map + a
+    ld a, b
+    and a, %00000111
+    ld b, a
+    ; ld a, [address of start of collision map] 
+    bit b, a
+    jr nz, .no_collide
+        ld a, [ENEMY_COLLISION_FLAGS]
+        set COLB_TOP_LEFT, a
+        ld [ENEMY_COLLISION_FLAGS], a
+    .no_collide
+endm
+
+macro ApplyIntendedX
+    ; Move left
+    ld a, [\1 + ENEMY_INTENDED_MOVEMENT]
+    bit PADB_LEFT, a
+    jp z, .not_left_move\@
+        ld a, [\1 + ENEMY_SPRITE_WORLD_X]
+        dec a
+        ld [\1 + ENEMY_SPRITE_WORLD_X], a
+    .not_left_move\@
+    ; Move right
+    ld a, [\1 + ENEMY_INTENDED_MOVEMENT]
+    bit PADB_RIGHT, a
+    jp z, .not_right_move\@
+        ld a, [\1 + ENEMY_SPRITE_WORLD_X]
+        inc a
+        ld [\1 + ENEMY_SPRITE_WORLD_X], a
+    .not_right_move\@
+endm
+
+macro ApplyIntendedY
+    ; Move up
+    ld a, [\1 + ENEMY_INTENDED_MOVEMENT]
+    bit PADB_UP, a
+    jp z, .not_up_move\@
+        ld a, [\1 + ENEMY_SPRITE_WORLD_Y]
+        dec a
+        ld [\1 + ENEMY_SPRITE_WORLD_Y], a
+    .not_up_move\@
+    ; Move down
+    ld a, [\1 + ENEMY_INTENDED_MOVEMENT]
+    bit PADB_DOWN, a
+    jp z, .end_movement\@
+        ld a, [\1 + ENEMY_SPRITE_WORLD_Y]
+        inc a
+        ld [\1 + ENEMY_SPRITE_WORLD_Y], a
+    .end_movement\@
+endm
+
+macro ApplyIntendedMovement
+    ; Does the enemy move this framme?
+    ld a, [\1 + ENEMY_MOVEMENT_DELAY]
+    ld b, a
+    ld a, [\1 + ENEMY_MOVEMENT_DELAY_STATE]
+    inc a
+    and a, b
+    ld [\1 + ENEMY_MOVEMENT_DELAY_STATE], a
+    jp nz, .end_movement\@
+        ApplyIntendedX \1, \2, \3
+        ApplyIntendedY \1, \2, \3
+    .end_movement\@
+endm
+
+
 
 ; updates enemy movement in the x direction
 ; \1: Enemy data memory chunk
@@ -182,6 +333,21 @@ macro EnemyPathfinding
     .end_pathfinding\@
 endm
 
+; Handles collisions with the character
+; \1: Enemy data memory chunk
+; \2: Enemy head OAM location, \3: Enemy legs OAM location
+macro CharacterCollision
+    ld a, [\1 + DISTANCE_TO_CHAR_X]
+    cp a, CHARACTER_COLLISION_RANGE_X
+    jr nc, .no_collision_enemy\@
+    ld a, [\1 + DISTANCE_TO_CHAR_Y]
+    cp a, CHARACTER_COLLISION_RANGE_Y
+    jr nc, .no_collision_enemy\@
+    ; collision!!!!!!
+    copy [rGSF], rGSF_TITLE
+    .no_collision_enemy\@
+endm
+
 ; Overarching enemy movement logic
 ; \1: Enemy data memory chunk
 ; \2: Enemy head OAM location, \3: Enemy legs OAM location
@@ -239,6 +405,54 @@ macro EnemySetDownAnim
     copy [\1 + ENEMY_FIRST_ANI_FRAME_HEAD], DOWN_ANIMATION_START + ENEMY_ANIMATION_OFFSET
     copy [\1 + ENEMY_FIRST_ANI_FRAME_LEGS], DOWN_ANIMATION_START + LEGS_TILE_OFFSET + ENEMY_ANIMATION_OFFSET
     copy [\1 + ENEMY_LAST_ANI_FRAME_HEAD], DOWN_ANIMATION_END + ENEMY_ANIMATION_OFFSET
+endm
+
+macro UpdateEnemyAnimationState
+    copy [\1 + PREV_ENEMY_SPRITE_ANIMATION], [\1 + ENEMY_SPRITE_ANIMATION]
+
+    ; Check if we are moving in the y direction, prioritize that animation
+    ld a, [\1 + ENEMY_INTENDED_MOVEMENT]
+    bit PADB_LEFT, a
+    jr nz, .moving_y\@
+    bit PADB_RIGHT, a
+    jr z, .not_moving_y\@
+    .moving_y\@
+        and ISOLATE_LEFT_RIGHT
+    .not_moving_y\@
+        ld [\1 + ENEMY_SPRITE_ANIMATION], a
+endm
+
+macro ApplyEnemyAnimationState
+    ld a, [\1 + PREV_ENEMY_SPRITE_ANIMATION]
+    ld b, a
+    ld a, [\1 + ENEMY_SPRITE_ANIMATION]
+    cp a, b
+    jr z, .no_enemy_update_animation\@
+    cp a, DOWN_ANIMATION_FLAG
+    jr nz, .not_down_anim\@
+        EnemySetDownAnim \1, \2, \3
+        jp .set_enemy_animation\@
+    .not_down_anim\@
+        ld a, [\1 + ENEMY_SPRITE_ANIMATION]
+        cp a, UP_ANIMATION_FLAG
+    jr nz, .not_up_anim\@
+        EnemySetUpAnim \1, \2, \3
+        jp .set_enemy_animation\@
+    .not_up_anim\@
+        ld a, [\1 + ENEMY_SPRITE_ANIMATION]
+        cp a, LEFT_ANIMATION_FLAG
+    jr nz, .not_left_anim\@
+        EnemySetLeftAnim \1, \2, \3
+        jp .set_enemy_animation\@
+    .not_left_anim\@
+        ld a, [\1 + ENEMY_SPRITE_ANIMATION]
+        cp a, RIGHT_ANIMATION_FLAG
+    jr nz, .no_enemy_update_animation\@
+        EnemySetRightAnim \1, \2, \3
+        jp .set_enemy_animation\@
+    .set_enemy_animation\@
+        copy [\1 + ENEMY_ANIM_CHANGED], ANIM_CHANGED_FLAG
+    .no_enemy_update_animation\@
 endm
 
 ; updates the enemy animation in the x direction
@@ -301,6 +515,9 @@ endm
 ; \1: Enemy data memory chunk
 ; \2: Enemy head OAM location, \3: Enemy legs OAM location
 macro AnimateEnemy
+    ld a, [\1 + ENEMY_ANIM_CHANGED]
+    cp a, ANIM_CHANGED_FLAG
+    jp z, .reset\@
     ; checks wether or not we want to animate on this v-blank
     ld a, [\1 + ENEMY_ANI_DELAY]
     ld b, a
@@ -331,22 +548,19 @@ macro AnimateEnemy
     .reset\@
         copy [\2 + OAMA_TILEID], [\1 + ENEMY_FIRST_ANI_FRAME_HEAD]
         copy [\3 + OAMA_TILEID], [\1 + ENEMY_FIRST_ANI_FRAME_LEGS]
+        copy [\1 + ENEMY_ANIM_CHANGED], ANIM_UNCHANGED_FLAG
     .end_animate\@
 endm
 
-; Handles collisions with the character
-; \1: Enemy data memory chunk
-; \2: Enemy head OAM location, \3: Enemy legs OAM location
-macro CharacterCollision
-    ld a, [\1 + DISTANCE_TO_CHAR_X]
-    cp a, CHARACTER_COLLISION_RANGE_X
-    jr nc, .no_collision_enemy\@
-    ld a, [\1 + DISTANCE_TO_CHAR_Y]
-    cp a, CHARACTER_COLLISION_RANGE_Y
-    jr nc, .no_collision_enemy\@
-    ; collision!!!!!!
-    copy [rGSF], rGSF_TITLE
-    .no_collision_enemy\@
+macro UpdateEnemyData
+    UpdateIntendedMovement \1, \2, \3
+    ApplyIntendedMovement \1, \2, \3
+    UpdateEnemyAnimationState \1, \2, \3
+    ApplyEnemyAnimationState \1, \2, \3
+endm
+
+macro UpdateEnemyVisuals
+
 endm
 
 endc

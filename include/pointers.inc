@@ -36,8 +36,8 @@ def SPRINT_RECHARGE_DELAY_STATE     rb 1
 def CHARACTER_ANIM_CHANGED          rb 1
 
 ; enemy data chunks
-def ENEMY1_DATA                     rb 13
-def ENEMY2_DATA                     rb 13
+def ENEMY1_DATA                     rb 16
+def ENEMY2_DATA                     rb 16
 
 ; Timer values
 def CURRENT_TIMER_TENS_VALUE        rb 1

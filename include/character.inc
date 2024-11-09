@@ -140,7 +140,7 @@ endm
 macro UpdateSprint
     ; If the character can sprint and (A) is being held, sprint
     ld a, [CHARACTER_CAN_SPRINT]
-    bit JOYPADB_A, a
+    bit PADB_A, a
     jr z, .walk
             xor a
             ld b, a
@@ -248,9 +248,9 @@ macro UpdateAnimationState
     ld a, [JOYPAD_CURRENT]
     xor ALL_BITS_FLIP
     ; Check if we are moving in the y direction, prioritize that animation
-    bit JOYPADB_LEFT, a
+    bit PADB_LEFT, a
     jr nz, .moving_y
-    bit JOYPADB_RIGHT, a
+    bit PADB_RIGHT, a
     jr z, .not_moving_y
     .moving_y
         and ISOLATE_LEFT_RIGHT

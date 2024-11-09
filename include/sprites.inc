@@ -15,6 +15,25 @@ include "include/enemy.inc"
 def SPRITE_X_OFFSET                 equ (8)
 def SPRITE_Y_OFFSET                 equ (16)
 
+; Sprite Collision Flag Constants
+def COLLF_TOP_LEFT                  equ $80
+def COLLF_TOP_RIGHT                 equ $40
+def COLLF_RIGHT_TOP                 equ $20
+def COLLF_RIGHT_BOTTOM              equ $10
+def COLLF_BOTTOM_RIGHT              equ $08
+def COLLF_BOTTOM_LEFT               equ $04
+def COLLF_LEFT_BOTTOM               equ $02
+def COLLF_LEFT_TOP                  equ $01
+
+def COLLB_TOP_LEFT                  equ $7
+def COLLB_TOP_RIGHT                 equ $6
+def COLLB_RIGHT_TOP                 equ $5
+def COLLB_RIGHT_BOTTOM              equ $4
+def COLLB_BOTTOM_RIGHT              equ $3
+def COLLB_BOTTOM_LEFT               equ $2
+def COLLB_LEFT_BOTTOM               equ $1
+def COLLB_LEFT_TOP                  equ $0
+
 ; character sprite constants
 def CHARACTER_SPRITE_HEAD equ (_OAMRAM)
 def CHARACTER_SPRITE_LEGS equ (_OAMRAM + sizeof_OAM_ATTRS)

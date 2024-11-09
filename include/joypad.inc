@@ -9,9 +9,6 @@ def JOYPAD_INC equ 1
 include "include/pointers.inc"
 
 def NO_BUTTONS_PRESSED          equ ($FF)
-def JOYPADB_LEFT                equ (5)
-def JOYPADB_RIGHT               equ (4)
-def JOYPADB_A                   equ (0)
 def ISOLATE_LEFT_RIGHT          equ (%00110000)
 def ISOLATE_DPAD                equ ($F0)
 def ISOLATE_POLLED_VALUES       equ ($0F)
