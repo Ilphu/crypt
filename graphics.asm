@@ -130,6 +130,16 @@ CLEAR_STRING:
 LOSS_STRING:
     db "NOT FAST ENOUGH...\0"
 
+; collision map
+section "collision_map", rom0[ROM_COLLISION_MAP_ADDRESS_START]
+ds 22, $FF
+db $F8, $0F, $F0, $19, $F0, $0F, $F0, $03, $F0, $0F, $F0, $03, $F0, $0F, $F0, $03
+db $F0, $0F, $00, $03, $F0, $00, $00, $01, $F0, $00, $00, $38, $E0, $00, $F0, $F8
+db $00, $0F, $F0, $F8, $00, $0F, $F0, $F8, $00, $0F, $F0, $F8, $1F, $8F, $F0, $F8
+db $1F, $9F, $F0, $F8, $1F, $9F, $F8, $00, $1F, $9F, $FC, $00, $1F, $9F, $FC, $00
+db $07, $8F, $F8, $00, $00, $0F, $F0, $C0, $00, $0F, $00, $C0, $00, $00, $00, $00
+db $00, $00, $00, $0F, $F8, $00, $F0, $0F, $F8, $0F, $F0, $0F, $F8, $0F
+ds 12, $FF
 ; DungeionTilesetUpdated.png is a remix of the GB Studio Dungeon Tileset by 
 ; Rekkimaru and the GameBoy palette "Island" by PiiXL.
 ; GB Studio Dungeon Tileset:

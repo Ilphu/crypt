@@ -59,6 +59,302 @@ macro InitCharacterAnimation
     copy [CHARACTER_ANI_DELAY_STATE],         (INITIAL_DELAY)
 endm
 
+macro UpdateCharacterCollisionFlags
+    ; top left
+    ld a, [CHARACTER_SPRITE_WORLD_Y]
+    ld b, TILE_WIDTH
+    add a, b
+    dec a
+    srl a
+    and %11111100
+    
+    ld hl, COLLISION_MAP_ADDRESS_START
+    ld de, 0
+    ld e, a
+    add hl, de ; now hl points to the start of the row of 4 bytes
+
+    ld a, [CHARACTER_SPRITE_WORLD_X]
+    srl a
+    srl a
+    srl a
+    ld b, a
+    srl a
+    srl a
+    srl a
+    ; address of start of collision map + a
+    ld e, a
+    add hl, de
+
+    ld a, b
+    and a, %00000111
+
+    vBit a, [hl]
+    jr z, .no_tl_collide\@
+        ld a, [CHARACTER_COLLISION_FLAGS]
+        set COLLB_TOP_LEFT, a
+        ld [CHARACTER_COLLISION_FLAGS], a
+    .no_tl_collide\@
+
+    ; top right
+    ld a, [CHARACTER_SPRITE_WORLD_Y]
+    ld b, TILE_WIDTH
+    add a, b
+    dec a
+    srl a
+    and %11111100
+
+    ld hl, COLLISION_MAP_ADDRESS_START
+    ld de, 0
+    ld e, a
+    add hl, de ; now hl points to the start of the row of 4 bytes
+
+    ld a, [CHARACTER_SPRITE_WORLD_X]
+    ld b, TILE_WIDTH
+    add a, b
+    srl a
+    srl a
+    srl a
+    ld b, a
+    srl a
+    srl a
+    srl a
+    ; address of start of collision map + a
+    ld e, a
+    add hl, de
+
+    ld a, b
+    and a, %00000111
+    ; stores the bit we want to look at in (b)
+    vBit a, [hl]
+    jr z, .no_tr_collide\@
+        ld a, [CHARACTER_COLLISION_FLAGS]
+        set COLLB_TOP_RIGHT, a
+        ld [CHARACTER_COLLISION_FLAGS], a
+    .no_tr_collide\@
+
+    ; right top
+    ld a, [CHARACTER_SPRITE_WORLD_Y]
+    ld b, TILE_WIDTH
+    add a, b
+    srl a
+    and %11111100
+
+    ld hl, COLLISION_MAP_ADDRESS_START
+    ld de, 0
+    ld e, a
+    add hl, de ; now hl points to the start of the row of 4 bytes
+
+    ld a, [CHARACTER_SPRITE_WORLD_X]
+    ld b, TILE_WIDTH
+    add a, b
+    inc a
+    srl a
+    srl a
+    srl a
+    ld b, a
+    srl a
+    srl a
+    srl a
+    ; address of start of collision map + a
+    ld e, a
+    add hl, de
+
+    ld a, b
+    and a, %00000111
+    ; stores the bit we want to look at in (b)
+    vBit a, [hl]
+    jr z, .no_rt_collide\@
+        ld a, [CHARACTER_COLLISION_FLAGS]
+        set COLLB_RIGHT_TOP, a
+        ld [CHARACTER_COLLISION_FLAGS], a
+    .no_rt_collide\@
+
+
+    ; right bottom
+    ld a, [CHARACTER_SPRITE_WORLD_Y]
+    ld b, TILE_WIDTH
+    add a, b
+    add a, b
+    srl a
+    and %11111100
+
+    ld hl, COLLISION_MAP_ADDRESS_START
+    ld de, 0
+    ld e, a
+    add hl, de ; now hl points to the start of the row of 4 bytes
+
+    ld a, [CHARACTER_SPRITE_WORLD_X]
+    ld b, TILE_WIDTH
+    add a, b
+    inc a
+    srl a
+    srl a
+    srl a
+    ld b, a
+    srl a
+    srl a
+    srl a
+    ; address of start of collision map + a
+    ld e, a
+    add hl, de
+
+    ld a, b
+    and a, %00000111
+    ; stores the bit we want to look at in (b)
+    vBit a, [hl]
+    jr z, .no_rb_collide\@
+        ld a, [CHARACTER_COLLISION_FLAGS]
+        set COLLB_RIGHT_BOTTOM, a
+        ld [CHARACTER_COLLISION_FLAGS], a
+    .no_rb_collide\@
+
+    ; bottom right
+    ld a, [CHARACTER_SPRITE_WORLD_Y]
+    ld b, TILE_WIDTH
+    add a, b
+    add a, b
+    inc a
+    srl a
+    and %11111100
+
+    ld hl, COLLISION_MAP_ADDRESS_START
+    ld de, 0
+    ld e, a
+    add hl, de ; now hl points to the start of the row of 4 bytes
+
+    ld a, [CHARACTER_SPRITE_WORLD_X]
+    ld b, TILE_WIDTH
+    add a, b
+    srl a
+    srl a
+    srl a
+    ld b, a
+    srl a
+    srl a
+    srl a
+    ; address of start of collision map + a
+    ld e, a
+    add hl, de
+
+    ld a, b
+    and a, %00000111
+    ; stores the bit we want to look at in (b)
+    vBit a, [hl]
+    jr z, .no_br_collide\@
+        ld a, [CHARACTER_COLLISION_FLAGS]
+        set COLLB_BOTTOM_RIGHT, a
+        ld [CHARACTER_COLLISION_FLAGS], a
+    .no_br_collide\@
+
+    ; bottom left
+    ld a, [CHARACTER_SPRITE_WORLD_Y]
+    ld b, TILE_WIDTH
+    add a, b
+    add a, b
+    inc a
+    srl a
+    and %11111100
+
+    ld hl, COLLISION_MAP_ADDRESS_START
+    ld de, 0
+    ld e, a
+    add hl, de ; now hl points to the start of the row of 4 bytes
+
+    ld a, [CHARACTER_SPRITE_WORLD_X]
+    srl a
+    srl a
+    srl a
+    ld b, a
+    srl a
+    srl a
+    srl a
+    ; address of start of collision map + a
+    ld e, a
+    add hl, de
+
+    ld a, b
+    and a, %00000111
+    ; stores the bit we want to look at in (b)
+    vBit a, [hl]
+    jr z, .no_bl_collide\@
+        ld a, [CHARACTER_COLLISION_FLAGS]
+        set COLLB_BOTTOM_LEFT, a
+        ld [CHARACTER_COLLISION_FLAGS], a
+    .no_bl_collide\@
+
+    ; left bottom
+    ld a, [CHARACTER_SPRITE_WORLD_Y]
+    ld b, TILE_WIDTH
+    add a, b
+    add a, b
+    inc a
+    srl a
+    and %11111100
+
+    ld hl, COLLISION_MAP_ADDRESS_START
+    ld de, 0
+    ld e, a
+    add hl, de ; now hl points to the start of the row of 4 bytes
+
+    ld a, [CHARACTER_SPRITE_WORLD_X]
+    srl a
+    srl a
+    srl a
+    ld b, a
+    srl a
+    srl a
+    srl a
+    ; address of start of collision map + a
+    ld e, a
+    add hl, de
+
+    ld a, b
+    and a, %00000111
+    ; stores the bit we want to look at in (b)
+    vBit a, [hl]
+    jr z, .no_lb_collide\@
+        ld a, [CHARACTER_COLLISION_FLAGS]
+        set COLLB_LEFT_BOTTOM, a
+        ld [CHARACTER_COLLISION_FLAGS], a
+    .no_lb_collide\@
+
+    ; left top
+    ld a, [CHARACTER_SPRITE_WORLD_Y]
+    ld b, TILE_WIDTH
+    add a, b
+    inc a
+    srl a
+    and %11111100
+
+    ld hl, COLLISION_MAP_ADDRESS_START
+    ld de, 0
+    ld e, a
+    add hl, de ; now hl points to the start of the row of 4 bytes
+
+    ld a, [CHARACTER_SPRITE_WORLD_X]
+    dec a
+    srl a
+    srl a
+    srl a
+    ld b, a
+    srl a
+    srl a
+    srl a
+    ; address of start of collision map + a
+    ld e, a
+    add hl, de
+
+    ld a, b
+    and a, %00000111
+    ; stores the bit we want to look at in (b)
+    vBit a, [hl]
+    jr z, .no_lt_collide\@
+        ld a, [CHARACTER_COLLISION_FLAGS]
+        set COLLB_LEFT_TOP, a
+        ld [CHARACTER_COLLISION_FLAGS], a
+    .no_lt_collide\@
+endm
+
 ; Updates the character in the x direction
 macro UpdateCharacterX
     ; Move left

@@ -1,5 +1,5 @@
 SUMMARY:
-	ROM0: 11305 bytes used / 21463 free
+	ROM0: 11928 bytes used / 20840 free
 
 ROM0 bank #0:
 	EMPTY: $0000-$003f ($0040 bytes)
@@ -84,75 +84,94 @@ ROM0 bank #0:
 	         $0685 = update_enemies.reset_u32
 	         $0696 = update_enemies.end_animate_u32
 	         $06b8 = update_enemies.no_update_enemy_2
-	SECTION: $06b9-$0906 ($024e bytes) ["game"]
-	         $06b9 = init_game
-	         $06c1 = init_game.init_oam_u1
-	         $07b3 = init_game.no_init_enemy_2
-	         $0860 = update_game
-	         $08e8 = update_game.next_lvl
-	         $08ed = update_game.display_timer
-	         $08fd = update_game.done_updating_timer
-	SECTION: $0907-$0b1e ($0218 bytes) ["character"]
-	         $0907 = update_character_data
-	         $092b = update_character_data.cant_sprint
-	         $092f = update_character_data.walk
-	         $095a = update_character_data.end_sprint
-	         $096a = update_character_data.sprint_ani
-	         $096f = update_character_data.end_update_sprint_animation
-	         $0992 = update_character_data.not_down_move
-	         $09a6 = update_character_data.not_up_move
-	         $09ba = update_character_data.not_left_move
-	         $09ce = update_character_data.end_movement
-	         $09ce = update_character_data.not_right_move
-	         $09ee = update_character_data.moving_y
-	         $09f0 = update_character_data.not_moving_y
-	         $09fc = update_character_data.down_anim
-	         $0a0e = update_character_data.not_down_anim
-	         $0a15 = update_character_data.up_anim
-	         $0a27 = update_character_data.not_up_anim
-	         $0a2e = update_character_data.left_anim
-	         $0a4a = update_character_data.not_left_anim
-	         $0a51 = update_character_data.right_anim
-	         $0a6d = update_character_data.not_right_anim
-	         $0a83 = update_character_data.not_down_idle
-	         $0a99 = update_character_data.not_up_idle
-	         $0aa4 = update_character_data.side_idle
-	         $0ab3 = update_character_data.anim_set
-	         $0ab3 = update_character_data.not_side_idle
-	         $0ab8 = update_character_data.no_animation_update
-	         $0ab9 = update_character_visuals
-	         $0b0d = update_character_visuals.reset
-	         $0b1e = update_character_visuals.end_animate
-	SECTION: $0b1f-$0c2f ($0111 bytes) ["graphics"]
-	         $0b1f = print_text
-	         $0b26 = print_text.write_text_loop
-	         $0b31 = print_text.over
-	         $0b36 = update_window
-	         $0b36 = update_window.check_window_moves
-	         $0b57 = update_window.no_move_screen_right
-	         $0b6d = update_window.no_move_screen_left
-	         $0b83 = update_window.no_move_screen_up
-	         $0b99 = update_window.no_move_screen
-	         $0b9a = init_title_screen
-	         $0ba5 = init_title_screen.load_tile_u1
-	         $0bed = init_title_screen.not_lvl_2
-	         $0bee = LEVEL_2_STRING_1
-	         $0bff = LEVEL_2_STRING_2
-	         $0c0a = CLEAR_STRING
-	         $0c1d = LOSS_STRING
-	SECTION: $0c30-$0d27 ($00f8 bytes) ["main"]
-	         $0c30 = main
-	         $0c35 = main.main_title
-	         $0c35 = main.wait_vblank_u1
-	         $0c43 = main.title_screen
-	         $0c96 = main.lvl_1
-	         $0c96 = main.wait_vblank_u2
-	         $0ca4 = main.lvl_1_loop
-	         $0cb6 = main.wait_vblank_u3
-	         $0cb6 = main.lvl_2_title
-	         $0cc4 = main.lvl_2_title_screen
-	         $0d17 = main.lvl_2
-	         $0d1b = main.lvl_2_loop
-	EMPTY: $0d28-$5fff ($52d8 bytes)
+	SECTION: $06b9-$0ab1 ($03f9 bytes) ["character"]
+	         $06b9 = update_character_data
+	         $06e4 = update_character_data.count_down_u1
+	         $06f3 = update_character_data.no_tl_collide_u2
+	         $0721 = update_character_data.count_down_u3
+	         $0730 = update_character_data.no_tr_collide_u2
+	         $075e = update_character_data.count_down_u4
+	         $076d = update_character_data.no_rt_collide_u2
+	         $079c = update_character_data.count_down_u5
+	         $07ab = update_character_data.no_rb_collide_u2
+	         $07da = update_character_data.count_down_u6
+	         $07e9 = update_character_data.no_br_collide_u2
+	         $0815 = update_character_data.count_down_u7
+	         $0824 = update_character_data.no_bl_collide_u2
+	         $0850 = update_character_data.count_down_u8
+	         $085f = update_character_data.no_lb_collide_u2
+	         $088b = update_character_data.count_down_u9
+	         $089a = update_character_data.no_lt_collide_u2
+	         $08be = update_character_data.cant_sprint
+	         $08c2 = update_character_data.walk
+	         $08ed = update_character_data.end_sprint
+	         $08fd = update_character_data.sprint_ani
+	         $0902 = update_character_data.end_update_sprint_animation
+	         $0925 = update_character_data.not_down_move
+	         $0939 = update_character_data.not_up_move
+	         $094d = update_character_data.not_left_move
+	         $0961 = update_character_data.end_movement
+	         $0961 = update_character_data.not_right_move
+	         $0981 = update_character_data.moving_y
+	         $0983 = update_character_data.not_moving_y
+	         $098f = update_character_data.down_anim
+	         $09a1 = update_character_data.not_down_anim
+	         $09a8 = update_character_data.up_anim
+	         $09ba = update_character_data.not_up_anim
+	         $09c1 = update_character_data.left_anim
+	         $09dd = update_character_data.not_left_anim
+	         $09e4 = update_character_data.right_anim
+	         $0a00 = update_character_data.not_right_anim
+	         $0a16 = update_character_data.not_down_idle
+	         $0a2c = update_character_data.not_up_idle
+	         $0a37 = update_character_data.side_idle
+	         $0a46 = update_character_data.anim_set
+	         $0a46 = update_character_data.not_side_idle
+	         $0a4b = update_character_data.no_animation_update
+	         $0a4c = update_character_visuals
+	         $0aa0 = update_character_visuals.reset
+	         $0ab1 = update_character_visuals.end_animate
+	SECTION: $0ab2-$0cff ($024e bytes) ["game"]
+	         $0ab2 = init_game
+	         $0aba = init_game.init_oam_u1
+	         $0bac = init_game.no_init_enemy_2
+	         $0c59 = update_game
+	         $0ce1 = update_game.next_lvl
+	         $0ce6 = update_game.display_timer
+	         $0cf6 = update_game.done_updating_timer
+	SECTION: $0d00-$0e1e ($011f bytes) ["graphics"]
+	         $0d00 = print_text
+	         $0d07 = print_text.write_text_loop
+	         $0d12 = print_text.over
+	         $0d17 = update_window
+	         $0d17 = update_window.check_window_moves
+	         $0d38 = update_window.no_move_screen_right
+	         $0d4e = update_window.no_move_screen_left
+	         $0d64 = update_window.no_move_screen_up
+	         $0d7a = update_window.no_move_screen
+	         $0d7b = init_title_screen
+	         $0d86 = init_title_screen.load_tile_u1
+	         $0da9 = init_title_screen.load_byte_u2
+	         $0ddc = init_title_screen.not_lvl_2
+	         $0ddd = LEVEL_2_STRING_1
+	         $0dee = LEVEL_2_STRING_2
+	         $0df9 = CLEAR_STRING
+	         $0e0c = LOSS_STRING
+	SECTION: $0e1f-$0f16 ($00f8 bytes) ["main"]
+	         $0e1f = main
+	         $0e24 = main.main_title
+	         $0e24 = main.wait_vblank_u1
+	         $0e32 = main.title_screen
+	         $0e85 = main.lvl_1
+	         $0e85 = main.wait_vblank_u2
+	         $0e93 = main.lvl_1_loop
+	         $0ea5 = main.wait_vblank_u3
+	         $0ea5 = main.lvl_2_title
+	         $0eb3 = main.lvl_2_title_screen
+	         $0f06 = main.lvl_2
+	         $0f0a = main.lvl_2_loop
+	EMPTY: $0f17-$5f7e ($5068 bytes)
+	SECTION: $5f7f-$5ffe ($0080 bytes) ["collision_map"]
+	EMPTY: $5fff-$5fff ($0001 byte)
 	SECTION: $6000-$7fff ($2000 bytes) ["graphics_data"]
-	TOTAL EMPTY: $53d7 bytes
+	TOTAL EMPTY: $5168 bytes

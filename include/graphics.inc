@@ -37,6 +37,11 @@ def SCREEN_STILL_X_MAX              equ (15 * TILE_WIDTH)
 def SCREEN_STILL_Y_MIN              equ (4 * TILE_WIDTH) + (TILE_WIDTH / 2)
 def SCREEN_STILL_Y_MAX              equ (13 * TILE_WIDTH) + (TILE_WIDTH / 2)
 
+def ROM_COLLISION_MAP_ADDRESS_START equ ($5F7F)
+def ROM_COLLISION_MAP_ADDRESS_END   equ (ROM_COLLISION_MAP_ADDRESS_START + $80)
+def COLLISION_MAP_ADDRESS_START     equ ($DF7F)
+def COLLISION_MAP_ADDRESS_END       equ (COLLISION_MAP_ADDRESS_START + $80)
+
 include "include/character.inc"
 include "include/timer.inc"
 
@@ -63,6 +68,18 @@ macro InitOAM
         add hl, de
         dec c
         jr nz, .init_oam\@
+endm
+
+macro InitCollisionMap
+    ld de, ROM_COLLISION_MAP_ADDRESS_START
+    ld hl, COLLISION_MAP_ADDRESS_START
+    .load_byte\@
+        ld a, [de]
+        inc de
+        ld [hli], a
+        ld a, e
+        cp a, low(ROM_COLLISION_MAP_ADDRESS_END)
+        jr nz, .load_byte\@
 endm
 
 macro PrintLvl2Text
@@ -99,6 +116,9 @@ macro InitTitle
     ld [rWX], a
     ld a, WINDOW_STARTING_Y
     ld [rWY], a
+
+    ; loads the collision map to the last 128 bytes of WRAM
+    InitCollisionMap
 
     ; level 2 text anouncement
     ld a, [rGSF]

@@ -21,5 +21,15 @@ macro copy
     ld \1, a
 endm
 
+macro vBit
+    ld c, \1
+    inc c
+    ld a, \2
+
+    .count_down\@
+        srl a
+        dec c
+        jr nz, .count_down\@
+endm
 endc
 

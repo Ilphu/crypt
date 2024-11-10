@@ -13,6 +13,7 @@ include "include/character.inc"
 section "character", rom0
 
 update_character_data:
+    UpdateCharacterCollisionFlags
     UpdateCharacterMovement
     UpdateAnimationState
     ret

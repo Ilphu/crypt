@@ -34,6 +34,7 @@ def CHARACTER_STAMINA_BAR           rb 1
 def CHARACTER_CAN_SPRINT            rb 1
 def SPRINT_RECHARGE_DELAY_STATE     rb 1
 def CHARACTER_ANIM_CHANGED          rb 1
+def CHARACTER_COLLISION_FLAGS       rb 1
 
 ; enemy data chunks
 def ENEMY1_DATA                     rb 16
