@@ -67,33 +67,13 @@ macro UpdateTLCollisionFlag
     dec a
     add a, TOP_BOUNDING_BOX_OFFSET
     ; Y portion of tile indexing
-    srl a
-    and %11111100
-    
-    ; Point (hl) to the start of the 4-byte tile row
-    ld hl, COLLISION_MAP_ADDRESS_START
-    ld de, 0
-    ld e, a
-    add hl, de 
+    TileIndexY
 
     ; X position of the point
     ld a, [CHARACTER_SPRITE_WORLD_X]
     add a, LEFT_BOUNDING_BOX_OFFSET
     ; X portion of tile indexing
-    srl a
-    srl a
-    srl a
-    ld b, a
-    srl a
-    srl a
-    srl a
-    ; Point (hl) to the byte in which the desired tile bit is held
-    ld e, a
-    add hl, de
-    ; Pick out the desired tile bit
-    ld a, b
-    and a, %00000111
-    xor a, %00000111
+    TileIndexX
     ; Sets the carry flag to 1 if the (a)th bit of [hl] is a 1, else 0.
     vBit ; a, [hl]
     ; Set that collision flag if the desired tile bit is a 1
@@ -112,33 +92,13 @@ macro UpdateTRCollisionFlag
     dec a
     add a, TOP_BOUNDING_BOX_OFFSET
     ; Y portion of tile indexing
-    srl a
-    and %11111100
-
-    ; Point (hl) to the start of the 4-byte tile row
-    ld hl, COLLISION_MAP_ADDRESS_START
-    ld de, 0
-    ld e, a
-    add hl, de ; now hl points to the start of the row of 4 bytes
+    TileIndexY
     ; X position of the point
     ld a, [CHARACTER_SPRITE_WORLD_X]
     add a, TILE_WIDTH
     add a, RIGHT_BOUNDING_BOX_OFFSET
     ; X portion of tile indexing
-    srl a
-    srl a
-    srl a
-    ld b, a
-    srl a
-    srl a
-    srl a
-    ; Point (hl) to the byte in which the desired tile bit is held
-    ld e, a
-    add hl, de
-    ; Pick out the desired tile bit
-    ld a, b
-    and a, %00000111
-    xor a, %00000111
+    TileIndexX
     ; Sets the carry flag to 1 if the (a)th bit of [hl] is a 1, else 0.
     vBit; a, [hl]
     ; Set that collision flag if the desired tile bit is a 1
@@ -156,34 +116,14 @@ macro UpdateRTCollisionFlag
     add a, TILE_WIDTH
     add a, TOP_BOUNDING_BOX_OFFSET
     ; Y portion of tile indexing
-    srl a
-    and %11111100
-
-    ; Point (hl) to the start of the 4-byte tile row
-    ld hl, COLLISION_MAP_ADDRESS_START
-    ld de, 0
-    ld e, a
-    add hl, de ; now hl points to the start of the row of 4 bytes
+    TileIndexY
     ; X position of the point
     ld a, [CHARACTER_SPRITE_WORLD_X]
     add a, TILE_WIDTH
     inc a
     add a, RIGHT_BOUNDING_BOX_OFFSET
     ; X portion of tile indexing
-    srl a
-    srl a
-    srl a
-    ld b, a
-    srl a
-    srl a
-    srl a
-    ; Point (hl) to the byte in which the desired tile bit is held
-    ld e, a
-    add hl, de
-    ; Pick out the desired tile bit
-    ld a, b
-    and a, %00000111
-    xor a, %00000111
+    TileIndexX
     ; Sets the carry flag to 1 if the (a)th bit of [hl] is a 1, else 0.
     vBit; a, [hl]
     ; Set that collision flag if the desired tile bit is a 1
@@ -202,34 +142,14 @@ macro UpdateRBCollisionFlag
     add a, TILE_WIDTH
     add a, BOTTOM_BOUNDING_BOX_OFFSET
     ; Y portion of tile indexing
-    srl a
-    and %11111100
-
-    ; Point (hl) to the start of the 4-byte tile row
-    ld hl, COLLISION_MAP_ADDRESS_START
-    ld de, 0
-    ld e, a
-    add hl, de ; now hl points to the start of the row of 4 bytes
+    TileIndexY
     ; X position of the point
     ld a, [CHARACTER_SPRITE_WORLD_X]
     add a, TILE_WIDTH
     inc a
     add a, RIGHT_BOUNDING_BOX_OFFSET
     ; X portion of tile indexing
-    srl a
-    srl a
-    srl a
-    ld b, a
-    srl a
-    srl a
-    srl a
-    ; Point (hl) to the byte in which the desired tile bit is held
-    ld e, a
-    add hl, de
-    ; Pick out the desired tile bit
-    ld a, b
-    and a, %00000111
-    xor a, %00000111
+    TileIndexX
     ; Sets the carry flag to 1 if the (a)th bit of [hl] is a 1, else 0.
     vBit; a, [hl]
     ; Set that collision flag if the desired tile bit is a 1
@@ -249,33 +169,13 @@ macro UpdateBRCollisionFlag
     inc a
     add a, BOTTOM_BOUNDING_BOX_OFFSET
     ; Y portion of tile indexing
-    srl a
-    and %11111100
-
-    ; Point (hl) to the start of the 4-byte tile row
-    ld hl, COLLISION_MAP_ADDRESS_START
-    ld de, 0
-    ld e, a
-    add hl, de ; now hl points to the start of the row of 4 bytes
+    TileIndexY
     ; X position of the point
     ld a, [CHARACTER_SPRITE_WORLD_X]
     add a, TILE_WIDTH
     add a, RIGHT_BOUNDING_BOX_OFFSET
     ; X portion of tile indexing
-    srl a
-    srl a
-    srl a
-    ld b, a
-    srl a
-    srl a
-    srl a
-    ; Point (hl) to the byte in which the desired tile bit is held
-    ld e, a
-    add hl, de
-    ; Pick out the desired tile bit
-    ld a, b
-    and a, %00000111
-    xor a, %00000111
+    TileIndexX
     ; Sets the carry flag to 1 if the (a)th bit of [hl] is a 1, else 0.
     vBit; a, [hl]
     ; Set that collision flag if the desired tile bit is a 1
@@ -295,32 +195,12 @@ macro UpdateBLCollisionFlag
     inc a
     add a, BOTTOM_BOUNDING_BOX_OFFSET
     ; Y portion of tile indexing
-    srl a
-    and %11111100
-
-    ; Point (hl) to the start of the 4-byte tile row
-    ld hl, COLLISION_MAP_ADDRESS_START
-    ld de, 0
-    ld e, a
-    add hl, de ; now hl points to the start of the row of 4 bytes
+    TileIndexY
     ; X position of the point
     ld a, [CHARACTER_SPRITE_WORLD_X]
     add a, LEFT_BOUNDING_BOX_OFFSET
     ; X portion of tile indexing
-    srl a
-    srl a
-    srl a
-    ld b, a
-    srl a
-    srl a
-    srl a
-    ; Point (hl) to the byte in which the desired tile bit is held
-    ld e, a
-    add hl, de
-    ; Pick out the desired tile bit
-    ld a, b
-    and a, %00000111
-    xor a, %00000111
+    TileIndexX
     ; Sets the carry flag to 1 if the (a)th bit of [hl] is a 1, else 0.
     vBit; a, [hl]
     ; Set that collision flag if the desired tile bit is a 1
@@ -339,33 +219,13 @@ macro UpdateLBCollisionFlag
     add a, TILE_WIDTH
     add a, BOTTOM_BOUNDING_BOX_OFFSET
     ; Y portion of tile indexing
-    srl a
-    and %11111100
-
-    ; Point (hl) to the start of the 4-byte tile row
-    ld hl, COLLISION_MAP_ADDRESS_START
-    ld de, 0
-    ld e, a
-    add hl, de ; now hl points to the start of the row of 4 bytes
+    TileIndexY
     ; X position of the point
     ld a, [CHARACTER_SPRITE_WORLD_X]
     dec a
     add a, LEFT_BOUNDING_BOX_OFFSET
     ; X portion of tile indexing
-    srl a
-    srl a
-    srl a
-    ld b, a
-    srl a
-    srl a
-    srl a
-    ; Point (hl) to the byte in which the desired tile bit is held
-    ld e, a
-    add hl, de
-    ; Pick out the desired tile bit
-    ld a, b
-    and a, %00000111
-    xor a, %00000111
+    TileIndexX
     ; Sets the carry flag to 1 if the (a)th bit of [hl] is a 1, else 0.
     vBit; a, [hl]
     ; Set that collision flag if the desired tile bit is a 1
@@ -383,34 +243,14 @@ macro UpdateLTCollisionFlag
     add a, TILE_WIDTH
     add a, TOP_BOUNDING_BOX_OFFSET
     ; Y portion of tile indexing
-    srl a
-    and %11111100
-
-    ; Point (hl) to the start of the 4-byte tile row
-    ld hl, COLLISION_MAP_ADDRESS_START
-    ld de, 0
-    ld e, a
-    add hl, de ; now hl points to the start of the row of 4 bytes
+    TileIndexY
     
     ; X position of the point
     ld a, [CHARACTER_SPRITE_WORLD_X]
     dec a
     add a, LEFT_BOUNDING_BOX_OFFSET
     ; X portion of tile indexing
-    srl a
-    srl a
-    srl a
-    ld b, a
-    srl a
-    srl a
-    srl a
-    ; Point (hl) to the byte in which the desired tile bit is held
-    ld e, a
-    add hl, de
-    ; Pick out the desired tile bit
-    ld a, b
-    and a, %00000111
-    xor a, %00000111
+    TileIndexX
     ; Sets the carry flag to 1 if the (a)th bit of [hl] is a 1, else 0.
     vBit; a, [hl]
     ; Set that collision flag if the desired tile bit is a 1

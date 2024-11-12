@@ -117,4 +117,34 @@ macro UpdateSpritePos16
     ld [\2 + OAMA_Y], a
 endm
 
+macro TileIndexY
+    srl a
+    and %11111100
+
+    ; Point (hl) to the start of the 4-byte tile row
+    ld hl, COLLISION_MAP_ADDRESS_START
+    ld de, 0
+    ld e, a
+    add hl, de
+endm
+
+macro TileIndexX
+    srl a
+    srl a
+    srl a
+    ld b, a
+    srl a
+    srl a
+    srl a
+
+    ; Point (hl) to the byte in which the desired tile bit is held
+    ld e, a
+    add hl, de
+    
+    ; Pick out the desired tile bit
+    ld a, b
+    and a, %00000111
+    xor a, %00000111
+endm
+
 endc
