@@ -185,16 +185,21 @@ macro UpdateIntendedMovement
     .end\@
 endm
 
-macro UpdateEnemyCollisionFlags
+macro UpdateEnemyTLCollisionFlag
     ; top left
-    ld a, ([ENEMY_SPRITE_WORLD_Y] + TILEWIDTH)
+    ld a, [\1 + ENEMY_SPRITE_WORLD_Y]
+    ld b, TILE_WIDTH
+    add a, b
     dec a
     srl a
-    and 3
+    and %11111100
+    
+    ld hl, COLLISION_MAP_ADDRESS_START
+    ld de, 0
+    ld e, a
+    add hl, de ; now hl points to the start of the row of 4 bytes
 
-    ; address of start of collision map + a
-
-    ld a, [ENEMY_SPRITE_WORLD_X]
+    ld a, [\1 + ENEMY_SPRITE_WORLD_X]
     srl a
     srl a
     srl a
@@ -203,16 +208,27 @@ macro UpdateEnemyCollisionFlags
     srl a
     srl a
     ; address of start of collision map + a
+    ld e, a
+    add hl, de
+
     ld a, b
     and a, %00000111
-    ld b, a
-    ; ld a, [address of start of collision map] 
-    bit b, a
-    jr nz, .no_collide
-        ld a, [ENEMY_COLLISION_FLAGS]
-        set COLB_TOP_LEFT, a
-        ld [ENEMY_COLLISION_FLAGS], a
-    .no_collide
+    xor a, %00000111
+    vBit ; a, [hl]
+    jr nc, .no_tl_collide\@
+        ld a, [\1 + ENEMY_COLLISION_FLAGS]
+        set COLLB_TOP_LEFT, a
+        ld [\1 + ENEMY_COLLISION_FLAGS], a
+    .no_tl_collide\@
+endm
+
+
+
+macro UpdateEnemyCollisionFlags
+    xor a
+    ld [\1 + ENEMY_COLLISION_FLAGS], a
+
+    UpdateEnemyTLCollisionFlag
 endm
 
 macro ApplyIntendedX
