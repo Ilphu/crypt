@@ -22,13 +22,12 @@ macro copy
 endm
 
 macro vBit
-    ld c, \1
-    inc c
-    ld a, \2
-
+    ld b, a
+    ld a, [hl]
+    inc b
     .count_down\@
         srl a
-        dec c
+        dec b
         jr nz, .count_down\@
 endm
 endc

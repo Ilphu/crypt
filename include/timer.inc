@@ -13,7 +13,7 @@ def ONES_RESET_VALUE        equ ($09)
 def TIMER_ROLLOVER_VLAUE    equ ($FF)
 
 def INIT_TIMER_ONES         equ ($00)
-def INIT_TIMER_TENS         equ ($03)
+def INIT_TIMER_TENS         equ ($02)
 
 ; initializing the timer sprites
 macro InitTimer

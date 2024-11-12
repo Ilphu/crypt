@@ -59,7 +59,7 @@ macro InitCharacterAnimation
     copy [CHARACTER_ANI_DELAY_STATE],         (INITIAL_DELAY)
 endm
 
-macro UpdateCharacterCollisionFlags
+macro UpdateTLCollisionFlag
     ; top left
     ld a, [CHARACTER_SPRITE_WORLD_Y]
     ld b, TILE_WIDTH
@@ -87,14 +87,16 @@ macro UpdateCharacterCollisionFlags
 
     ld a, b
     and a, %00000111
-
-    vBit a, [hl]
-    jr z, .no_tl_collide\@
+    xor a, %00000111
+    vBit ; a, [hl]
+    jr nc, .no_tl_collide\@
         ld a, [CHARACTER_COLLISION_FLAGS]
         set COLLB_TOP_LEFT, a
         ld [CHARACTER_COLLISION_FLAGS], a
     .no_tl_collide\@
+endm
 
+macro UpdateTRCollisionFlag
     ; top right
     ld a, [CHARACTER_SPRITE_WORLD_Y]
     ld b, TILE_WIDTH
@@ -124,14 +126,17 @@ macro UpdateCharacterCollisionFlags
 
     ld a, b
     and a, %00000111
+    xor a, %00000111
     ; stores the bit we want to look at in (b)
-    vBit a, [hl]
-    jr z, .no_tr_collide\@
+    vBit; a, [hl]
+    jr nc, .no_tr_collide\@
         ld a, [CHARACTER_COLLISION_FLAGS]
         set COLLB_TOP_RIGHT, a
         ld [CHARACTER_COLLISION_FLAGS], a
     .no_tr_collide\@
+endm
 
+macro UpdateRTCollisionFlag
     ; right top
     ld a, [CHARACTER_SPRITE_WORLD_Y]
     ld b, TILE_WIDTH
@@ -161,15 +166,17 @@ macro UpdateCharacterCollisionFlags
 
     ld a, b
     and a, %00000111
+    xor a, %00000111
     ; stores the bit we want to look at in (b)
-    vBit a, [hl]
-    jr z, .no_rt_collide\@
+    vBit; a, [hl]
+    jr nc, .no_rt_collide\@
         ld a, [CHARACTER_COLLISION_FLAGS]
         set COLLB_RIGHT_TOP, a
         ld [CHARACTER_COLLISION_FLAGS], a
     .no_rt_collide\@
+endm
 
-
+macro UpdateRBCollisionFlag
     ; right bottom
     ld a, [CHARACTER_SPRITE_WORLD_Y]
     ld b, TILE_WIDTH
@@ -200,14 +207,17 @@ macro UpdateCharacterCollisionFlags
 
     ld a, b
     and a, %00000111
+    xor a, %00000111
     ; stores the bit we want to look at in (b)
-    vBit a, [hl]
-    jr z, .no_rb_collide\@
+    vBit; a, [hl]
+    jr nc, .no_rb_collide\@
         ld a, [CHARACTER_COLLISION_FLAGS]
         set COLLB_RIGHT_BOTTOM, a
         ld [CHARACTER_COLLISION_FLAGS], a
     .no_rb_collide\@
+endm
 
+macro UpdateBRCollisionFlag
     ; bottom right
     ld a, [CHARACTER_SPRITE_WORLD_Y]
     ld b, TILE_WIDTH
@@ -238,14 +248,17 @@ macro UpdateCharacterCollisionFlags
 
     ld a, b
     and a, %00000111
+    xor a, %00000111
     ; stores the bit we want to look at in (b)
-    vBit a, [hl]
-    jr z, .no_br_collide\@
+    vBit; a, [hl]
+    jr nc, .no_br_collide\@
         ld a, [CHARACTER_COLLISION_FLAGS]
         set COLLB_BOTTOM_RIGHT, a
         ld [CHARACTER_COLLISION_FLAGS], a
     .no_br_collide\@
+endm
 
+macro UpdateBLCollisionFlag
     ; bottom left
     ld a, [CHARACTER_SPRITE_WORLD_Y]
     ld b, TILE_WIDTH
@@ -274,14 +287,17 @@ macro UpdateCharacterCollisionFlags
 
     ld a, b
     and a, %00000111
+    xor a, %00000111
     ; stores the bit we want to look at in (b)
-    vBit a, [hl]
-    jr z, .no_bl_collide\@
+    vBit; a, [hl]
+    jr nc, .no_bl_collide\@
         ld a, [CHARACTER_COLLISION_FLAGS]
         set COLLB_BOTTOM_LEFT, a
         ld [CHARACTER_COLLISION_FLAGS], a
     .no_bl_collide\@
+endm
 
+macro UpdateLBCollisionFlag
     ; left bottom
     ld a, [CHARACTER_SPRITE_WORLD_Y]
     ld b, TILE_WIDTH
@@ -310,14 +326,17 @@ macro UpdateCharacterCollisionFlags
 
     ld a, b
     and a, %00000111
+    xor a, %00000111
     ; stores the bit we want to look at in (b)
-    vBit a, [hl]
-    jr z, .no_lb_collide\@
+    vBit; a, [hl]
+    jr nc, .no_lb_collide\@
         ld a, [CHARACTER_COLLISION_FLAGS]
         set COLLB_LEFT_BOTTOM, a
         ld [CHARACTER_COLLISION_FLAGS], a
     .no_lb_collide\@
+endm
 
+macro UpdateLTCollisionFlag
     ; left top
     ld a, [CHARACTER_SPRITE_WORLD_Y]
     ld b, TILE_WIDTH
@@ -346,18 +365,38 @@ macro UpdateCharacterCollisionFlags
 
     ld a, b
     and a, %00000111
+    xor a, %00000111
     ; stores the bit we want to look at in (b)
-    vBit a, [hl]
-    jr z, .no_lt_collide\@
+    vBit; a, [hl]
+    jr nc, .no_lt_collide\@
         ld a, [CHARACTER_COLLISION_FLAGS]
         set COLLB_LEFT_TOP, a
         ld [CHARACTER_COLLISION_FLAGS], a
     .no_lt_collide\@
 endm
 
+macro UpdateCharacterCollisionFlags
+    xor a
+    ld [CHARACTER_COLLISION_FLAGS], a
+    UpdateTLCollisionFlag
+    UpdateTRCollisionFlag
+    UpdateRTCollisionFlag
+    UpdateRBCollisionFlag
+    UpdateBRCollisionFlag
+    UpdateBLCollisionFlag
+    UpdateLBCollisionFlag
+    UpdateLTCollisionFlag
+endm
+
 ; Updates the character in the x direction
 macro UpdateCharacterX
     ; Move left
+    ld a, [CHARACTER_COLLISION_FLAGS]
+    bit COLLB_LEFT_TOP, a
+    jr nz, .not_left_move
+    bit COLLB_LEFT_BOTTOM, a
+    jr nz, .not_left_move
+
     ld a, [JOYPAD_CURRENT]
     bit PADB_LEFT, a
     jp nz, .not_left_move
@@ -369,6 +408,12 @@ macro UpdateCharacterX
         ld [CHARACTER_SPRITE_WORLD_X], a
     .not_left_move
     ; Move right
+    ld a, [CHARACTER_COLLISION_FLAGS]
+    bit COLLB_RIGHT_TOP, a
+    jr nz, .not_right_move
+    bit COLLB_RIGHT_BOTTOM, a
+    jr nz, .not_right_move
+
     ld a, [JOYPAD_CURRENT]
     bit PADB_RIGHT, a
     jp nz, .not_right_move
@@ -384,6 +429,13 @@ endm
 ; Updates the character in the y direction
 macro UpdateCharacterY
     ; Move down
+    ; collision
+    ld a, [CHARACTER_COLLISION_FLAGS]
+    bit COLLB_BOTTOM_LEFT, a
+    jr nz, .not_down_move
+    bit COLLB_BOTTOM_RIGHT, a
+    jr nz, .not_down_move
+
     ld a, [JOYPAD_CURRENT]
     bit PADB_DOWN, a
     jp nz, .not_down_move
@@ -395,6 +447,12 @@ macro UpdateCharacterY
         ld [CHARACTER_SPRITE_WORLD_Y], a
     .not_down_move
     ; Move up
+    ld a, [CHARACTER_COLLISION_FLAGS]
+    bit COLLB_TOP_LEFT, a
+    jr nz, .not_up_move
+    bit COLLB_TOP_RIGHT, a
+    jr nz, .not_up_move
+
     ld a, [JOYPAD_CURRENT]
     bit PADB_UP, a
     jp nz, .not_up_move

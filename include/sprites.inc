@@ -25,14 +25,14 @@ def COLLF_BOTTOM_LEFT               equ $04
 def COLLF_LEFT_BOTTOM               equ $02
 def COLLF_LEFT_TOP                  equ $01
 
-def COLLB_TOP_LEFT                  equ $7
-def COLLB_TOP_RIGHT                 equ $6
-def COLLB_RIGHT_TOP                 equ $5
-def COLLB_RIGHT_BOTTOM              equ $4
-def COLLB_BOTTOM_RIGHT              equ $3
-def COLLB_BOTTOM_LEFT               equ $2
-def COLLB_LEFT_BOTTOM               equ $1
-def COLLB_LEFT_TOP                  equ $0
+def COLLB_TOP_LEFT                  equ $07
+def COLLB_TOP_RIGHT                 equ $06
+def COLLB_RIGHT_TOP                 equ $05
+def COLLB_RIGHT_BOTTOM              equ $04
+def COLLB_BOTTOM_RIGHT              equ $03
+def COLLB_BOTTOM_LEFT               equ $02
+def COLLB_LEFT_BOTTOM               equ $01
+def COLLB_LEFT_TOP                  equ $00
 
 ; character sprite constants
 def CHARACTER_SPRITE_HEAD equ (_OAMRAM)
