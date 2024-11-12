@@ -267,72 +267,6 @@ macro ApplyIntendedMovement
     .end_movement\@
 endm
 
-
-
-; updates enemy movement in the x direction
-; \1: Enemy data memory chunk
-; \2: Enemy head OAM location, \3: Enemy legs OAM location
-macro UpdateEnemyX
-    ld a, [CHARACTER_SPRITE_WORLD_X]
-    ld b, a
-    ld a, [\1 + ENEMY_SPRITE_WORLD_X]
-    cp a, b
-    jr c, .move_right\@
-    ; enemy is to the right of character
-        dec a
-        ld [\1 + ENEMY_SPRITE_WORLD_X], a
-        copy [\1 + ENEMY_SPRITE_ANIMATION], LEFT_ANIMATION_FLAG
-    jr .end_update_x\@
-    .move_right\@
-        inc a
-        ld [\1 + ENEMY_SPRITE_WORLD_X], a
-        copy [\1 + ENEMY_SPRITE_ANIMATION], RIGHT_ANIMATION_FLAG
-    .end_update_x\@
-endm
-
-; updates enemy movement in the y direction
-; \1: Enemy data memory chunk
-; \2: Enemy head OAM location, \3: Enemy legs OAM location
-macro UpdateEnemyY
-    ld a, [CHARACTER_SPRITE_WORLD_Y]
-    ld b, a
-    ld a, [\1 + ENEMY_SPRITE_WORLD_Y]
-    cp a, b
-    jr c, .move_down\@
-    ; enemy is above the character
-        dec a
-        ld [\1 + ENEMY_SPRITE_WORLD_Y], a
-        copy [\1 + ENEMY_SPRITE_ANIMATION], UP_ANIMATION_FLAG
-    jr .end_update_y\@
-    .move_down\@
-        inc a
-        ld [\1 + ENEMY_SPRITE_WORLD_Y], a
-        copy [\1 + ENEMY_SPRITE_ANIMATION], DOWN_ANIMATION_FLAG
-    .end_update_y\@
-endm
-
-; Path finding from the enemy to character
-; \1: Enemy data memory chunk
-; \2: Enemy head OAM location, \3: Enemy legs OAM location
-macro EnemyPathfinding
-    copy [\1 + PREV_ENEMY_SPRITE_ANIMATION], [\1 + ENEMY_SPRITE_ANIMATION]
-
-    ld a, [\1 + DISTANCE_TO_CHAR_Y]
-    ld b, a
-    ld a, [\1 + DISTANCE_TO_CHAR_X]
-    ; move in which ever axis is furthest away from the character
-    cp a, b
-    jp c, .move_Y\@
-    ; move X
-        UpdateEnemyX \1, \2, \3
-        UpdateEnemyAnimationX \1, \2, \3
-        jr .end_pathfinding\@
-    .move_Y\@
-        UpdateEnemyY \1, \2, \3
-        UpdateEnemyAnimationY \1, \2, \3
-    .end_pathfinding\@
-endm
-
 ; Handles collisions with the character
 ; \1: Enemy data memory chunk
 ; \2: Enemy head OAM location, \3: Enemy legs OAM location
@@ -348,25 +282,6 @@ macro CharacterCollision
     .no_collision_enemy\@
 endm
 
-; Overarching enemy movement logic
-; \1: Enemy data memory chunk
-; \2: Enemy head OAM location, \3: Enemy legs OAM location
-macro UpdateEnemyMovement
-    ld a, [\1 + ENEMY_MOVEMENT_DELAY]
-    ld b, a
-    ld a, [\1 + ENEMY_MOVEMENT_DELAY_STATE]
-    inc a
-    and a, b
-    ld [\1 + ENEMY_MOVEMENT_DELAY_STATE], a
-    jp nz, .end_movement\@
-
-    EnemyPathfinding \1, \2, \3
-    UpdateDistanceToCharX \1, \2, \3
-    UpdateDistanceToCharY \1, \2, \3
-    .end_movement\@
-    CharacterCollision \1, \2, \3
-endm
-
 ; enemy left animation
 ; \1: Enemy data memory chunk
 ; \2: Enemy head OAM location, \3: Enemy legs OAM location
@@ -374,8 +289,8 @@ macro EnemySetLeftAnim
     copy [\1 + ENEMY_FIRST_ANI_FRAME_HEAD], SIDE_ANIMATION_START + ENEMY_ANIMATION_OFFSET
     copy [\1 + ENEMY_FIRST_ANI_FRAME_LEGS], SIDE_ANIMATION_START + LEGS_TILE_OFFSET + ENEMY_ANIMATION_OFFSET
     copy [\1 + ENEMY_LAST_ANI_FRAME_HEAD], SIDE_ANIMATION_END + ENEMY_ANIMATION_OFFSET
-    copy [\2 + OAMA_FLAGS], OAMF_PAL0
-    copy [\3 + OAMA_FLAGS], OAMF_PAL0
+    ;copy [\2 + OAMA_FLAGS], OAMF_PAL0
+    ;copy [\3 + OAMA_FLAGS], OAMF_PAL0
 endm
 
 ; enemy right animation
@@ -385,8 +300,8 @@ macro EnemySetRightAnim
     copy [\1 + ENEMY_FIRST_ANI_FRAME_HEAD], SIDE_ANIMATION_START + ENEMY_ANIMATION_OFFSET
     copy [\1 + ENEMY_FIRST_ANI_FRAME_LEGS], SIDE_ANIMATION_START + LEGS_TILE_OFFSET + ENEMY_ANIMATION_OFFSET
     copy [\1 + ENEMY_LAST_ANI_FRAME_HEAD], SIDE_ANIMATION_END + ENEMY_ANIMATION_OFFSET
-    copy [\2 + OAMA_FLAGS], OAMF_PAL0 | OAMF_XFLIP
-    copy [\3 + OAMA_FLAGS], OAMF_PAL0 | OAMF_XFLIP
+    ;copy [\2 + OAMA_FLAGS], OAMF_PAL0 | OAMF_XFLIP
+    ;copy [\3 + OAMA_FLAGS], OAMF_PAL0 | OAMF_XFLIP
 endm
 
 ; enemy up animation
@@ -549,6 +464,16 @@ macro AnimateEnemy
         copy [\2 + OAMA_TILEID], [\1 + ENEMY_FIRST_ANI_FRAME_HEAD]
         copy [\3 + OAMA_TILEID], [\1 + ENEMY_FIRST_ANI_FRAME_LEGS]
         copy [\1 + ENEMY_ANIM_CHANGED], ANIM_UNCHANGED_FLAG
+
+        ld a, [\1 + ENEMY_SPRITE_ANIMATION]
+        cp a, LEFT_ANIMATION_FLAG
+        jp nz, .reset_right_anim\@
+            copy [\2 + OAMA_FLAGS], OAMF_PAL0
+            copy [\3 + OAMA_FLAGS], OAMF_PAL0
+            jr .end_animate\@
+        .reset_right_anim\@
+            copy [\2 + OAMA_FLAGS], OAMF_PAL0 | OAMF_XFLIP
+            copy [\3 + OAMA_FLAGS], OAMF_PAL0 | OAMF_XFLIP
     .end_animate\@
 endm
 
@@ -557,10 +482,6 @@ macro UpdateEnemyData
     ApplyIntendedMovement \1, \2, \3
     UpdateEnemyAnimationState \1, \2, \3
     ApplyEnemyAnimationState \1, \2, \3
-endm
-
-macro UpdateEnemyVisuals
-
 endm
 
 endc

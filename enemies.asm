@@ -34,21 +34,4 @@ update_enemies_visuals:
     .no_update_enemy_2
     ret
 
-; updates the enemies' movement, animations and positions
-update_enemies:
-    ;UpdateEnemyMovement ENEMY1_DATA, ENEMY1_SPRITE_HEAD, ENEMY1_SPRITE_LEGS
-    
-    
-
-    ; only have a second enemy if we are on the second level
-    ld a, [rGSF]
-    bit rGSB_LVL2, a
-    jp z, .no_update_enemy_2
-        UpdateEnemyMovement ENEMY2_DATA, ENEMY2_SPRITE_HEAD, ENEMY2_SPRITE_LEGS
-        AnimateEnemy ENEMY2_DATA, ENEMY2_SPRITE_HEAD, ENEMY2_SPRITE_LEGS
-        UpdateSpritePos16 ENEMY2_SPRITE_HEAD, ENEMY2_SPRITE_LEGS, ENEMY2_DATA + ENEMY_SPRITE_WORLD_X, ENEMY2_DATA + ENEMY_SPRITE_WORLD_Y
-    .no_update_enemy_2
-    
-    ret
-
 export update_enemies_data, update_enemies_visuals

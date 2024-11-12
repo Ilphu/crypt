@@ -21,6 +21,13 @@ section "vblank_interrupt", rom0[$0040]
 
 section "game", rom0
 
+macro WaitForVBlankEnd
+    .wait_vblank\@
+        ld a, [rLY]
+        cp a, $0
+        jr nz, .wait_vblank\@
+endm
+
 ; Initialize the palette, vblank interrupt, window, and LCD.
 init_game:
     InitGraphics
@@ -28,16 +35,17 @@ init_game:
 
 ; Update the everything needed for the game loop
 update_game:
+    WaitForVBlankEnd
+    ; Outside VBlank, WRAM only
     UpdateJoypad
     call update_character_data
     call update_enemies_data
+
     halt
-    
+    ; Inside VBlank, OAM and VRAM updates
     UpdateTimer
     call update_character_visuals
     call update_enemies_visuals
-
-    ;call update_enemies
     call update_window
     ret
 
