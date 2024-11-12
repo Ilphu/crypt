@@ -63,9 +63,9 @@ endm
 macro UpdateTLCollisionFlag
     ; Y position of the point
     ld a, [CHARACTER_SPRITE_WORLD_Y]
-    ld b, TILE_WIDTH
-    add a, b
+    add a, TILE_WIDTH
     dec a
+    add a, TOP_BOUNDING_BOX_OFFSET
     ; Y portion of tile indexing
     srl a
     and %11111100
@@ -78,6 +78,7 @@ macro UpdateTLCollisionFlag
 
     ; X position of the point
     ld a, [CHARACTER_SPRITE_WORLD_X]
+    add a, LEFT_BOUNDING_BOX_OFFSET
     ; X portion of tile indexing
     srl a
     srl a
@@ -107,9 +108,9 @@ endm
 macro UpdateTRCollisionFlag
     ; Y position of the point
     ld a, [CHARACTER_SPRITE_WORLD_Y]
-    ld b, TILE_WIDTH
-    add a, b
+    add a, TILE_WIDTH
     dec a
+    add a, TOP_BOUNDING_BOX_OFFSET
     ; Y portion of tile indexing
     srl a
     and %11111100
@@ -121,8 +122,8 @@ macro UpdateTRCollisionFlag
     add hl, de ; now hl points to the start of the row of 4 bytes
     ; X position of the point
     ld a, [CHARACTER_SPRITE_WORLD_X]
-    ld b, TILE_WIDTH
-    add a, b
+    add a, TILE_WIDTH
+    add a, RIGHT_BOUNDING_BOX_OFFSET
     ; X portion of tile indexing
     srl a
     srl a
@@ -152,8 +153,8 @@ endm
 macro UpdateRTCollisionFlag
     ; Y position of the point
     ld a, [CHARACTER_SPRITE_WORLD_Y]
-    ld b, TILE_WIDTH
-    add a, b
+    add a, TILE_WIDTH
+    add a, TOP_BOUNDING_BOX_OFFSET
     ; Y portion of tile indexing
     srl a
     and %11111100
@@ -165,9 +166,9 @@ macro UpdateRTCollisionFlag
     add hl, de ; now hl points to the start of the row of 4 bytes
     ; X position of the point
     ld a, [CHARACTER_SPRITE_WORLD_X]
-    ld b, TILE_WIDTH
-    add a, b
+    add a, TILE_WIDTH
     inc a
+    add a, RIGHT_BOUNDING_BOX_OFFSET
     ; X portion of tile indexing
     srl a
     srl a
@@ -197,9 +198,9 @@ endm
 macro UpdateRBCollisionFlag
     ; Y position of the point
     ld a, [CHARACTER_SPRITE_WORLD_Y]
-    ld b, TILE_WIDTH
-    add a, b
-    add a, b
+    add a, TILE_WIDTH
+    add a, TILE_WIDTH
+    add a, BOTTOM_BOUNDING_BOX_OFFSET
     ; Y portion of tile indexing
     srl a
     and %11111100
@@ -211,9 +212,9 @@ macro UpdateRBCollisionFlag
     add hl, de ; now hl points to the start of the row of 4 bytes
     ; X position of the point
     ld a, [CHARACTER_SPRITE_WORLD_X]
-    ld b, TILE_WIDTH
-    add a, b
+    add a, TILE_WIDTH
     inc a
+    add a, RIGHT_BOUNDING_BOX_OFFSET
     ; X portion of tile indexing
     srl a
     srl a
@@ -243,10 +244,10 @@ endm
 macro UpdateBRCollisionFlag
     ; Y position of the point
     ld a, [CHARACTER_SPRITE_WORLD_Y]
-    ld b, TILE_WIDTH
-    add a, b
-    add a, b
+    add a, TILE_WIDTH
+    add a, TILE_WIDTH
     inc a
+    add a, BOTTOM_BOUNDING_BOX_OFFSET
     ; Y portion of tile indexing
     srl a
     and %11111100
@@ -258,8 +259,8 @@ macro UpdateBRCollisionFlag
     add hl, de ; now hl points to the start of the row of 4 bytes
     ; X position of the point
     ld a, [CHARACTER_SPRITE_WORLD_X]
-    ld b, TILE_WIDTH
-    add a, b
+    add a, TILE_WIDTH
+    add a, RIGHT_BOUNDING_BOX_OFFSET
     ; X portion of tile indexing
     srl a
     srl a
@@ -289,10 +290,10 @@ endm
 macro UpdateBLCollisionFlag
     ; Y position of the point
     ld a, [CHARACTER_SPRITE_WORLD_Y]
-    ld b, TILE_WIDTH
-    add a, b
-    add a, b
+    add a, TILE_WIDTH
+    add a, TILE_WIDTH
     inc a
+    add a, BOTTOM_BOUNDING_BOX_OFFSET
     ; Y portion of tile indexing
     srl a
     and %11111100
@@ -304,6 +305,7 @@ macro UpdateBLCollisionFlag
     add hl, de ; now hl points to the start of the row of 4 bytes
     ; X position of the point
     ld a, [CHARACTER_SPRITE_WORLD_X]
+    add a, LEFT_BOUNDING_BOX_OFFSET
     ; X portion of tile indexing
     srl a
     srl a
@@ -333,10 +335,9 @@ endm
 macro UpdateLBCollisionFlag
     ; Y position of the point
     ld a, [CHARACTER_SPRITE_WORLD_Y]
-    ld b, TILE_WIDTH
-    add a, b
-    add a, b
-    inc a
+    add a, TILE_WIDTH
+    add a, TILE_WIDTH
+    add a, BOTTOM_BOUNDING_BOX_OFFSET
     ; Y portion of tile indexing
     srl a
     and %11111100
@@ -348,6 +349,8 @@ macro UpdateLBCollisionFlag
     add hl, de ; now hl points to the start of the row of 4 bytes
     ; X position of the point
     ld a, [CHARACTER_SPRITE_WORLD_X]
+    dec a
+    add a, LEFT_BOUNDING_BOX_OFFSET
     ; X portion of tile indexing
     srl a
     srl a
@@ -377,9 +380,8 @@ endm
 macro UpdateLTCollisionFlag
     ; Y position of the point
     ld a, [CHARACTER_SPRITE_WORLD_Y]
-    ld b, TILE_WIDTH
-    add a, b
-    inc a
+    add a, TILE_WIDTH
+    add a, TOP_BOUNDING_BOX_OFFSET
     ; Y portion of tile indexing
     srl a
     and %11111100
@@ -393,6 +395,7 @@ macro UpdateLTCollisionFlag
     ; X position of the point
     ld a, [CHARACTER_SPRITE_WORLD_X]
     dec a
+    add a, LEFT_BOUNDING_BOX_OFFSET
     ; X portion of tile indexing
     srl a
     srl a

@@ -34,6 +34,12 @@ def COLLB_BOTTOM_LEFT               equ $02
 def COLLB_LEFT_BOTTOM               equ $01
 def COLLB_LEFT_TOP                  equ $00
 
+; Bounding box offsets
+def TOP_BOUNDING_BOX_OFFSET         equ 3
+def BOTTOM_BOUNDING_BOX_OFFSET      equ -1
+def LEFT_BOUNDING_BOX_OFFSET        equ $00
+def RIGHT_BOUNDING_BOX_OFFSET       equ -1
+
 ; character sprite constants
 def CHARACTER_SPRITE_HEAD equ (_OAMRAM)
 def CHARACTER_SPRITE_LEGS equ (_OAMRAM + sizeof_OAM_ATTRS)
