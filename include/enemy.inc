@@ -185,36 +185,24 @@ macro UpdateIntendedMovement
     .end\@
 endm
 
+; top left collision point (1 px above the leftmost pixel of the top edge)
 macro UpdateEnemyTLCollisionFlag
-    ; top left
+    ; Y position of the point
     ld a, [\1 + ENEMY_SPRITE_WORLD_Y]
-    ld b, TILE_WIDTH
-    add a, b
+    add a, TILE_WIDTH
     dec a
-    srl a
-    and %11111100
-    
-    ld hl, COLLISION_MAP_ADDRESS_START
-    ld de, 0
-    ld e, a
-    add hl, de ; now hl points to the start of the row of 4 bytes
+    add a, TOP_BOUNDING_BOX_OFFSET
+    ; Y portion of tile indexing
+    TileIndexY
 
+    ; X position of the point
     ld a, [\1 + ENEMY_SPRITE_WORLD_X]
-    srl a
-    srl a
-    srl a
-    ld b, a
-    srl a
-    srl a
-    srl a
-    ; address of start of collision map + a
-    ld e, a
-    add hl, de
-
-    ld a, b
-    and a, %00000111
-    xor a, %00000111
+    add a, LEFT_BOUNDING_BOX_OFFSET
+    ; X portion of tile indexing
+    TileIndexX
+    ; Sets the carry flag to 1 if the (a)th bit of [hl] is a 1, else 0.
     vBit ; a, [hl]
+    ; Set that collision flag if the desired tile bit is a 1
     jr nc, .no_tl_collide\@
         ld a, [\1 + ENEMY_COLLISION_FLAGS]
         set COLLB_TOP_LEFT, a
@@ -222,13 +210,195 @@ macro UpdateEnemyTLCollisionFlag
     .no_tl_collide\@
 endm
 
+; Top right collision point (1px above the rightmost pixel of the top edge)
+macro UpdateEnemyTRCollisionFlag
+    ; Y position of the point
+    ld a, [\1 + ENEMY_SPRITE_WORLD_Y]
+    add a, TILE_WIDTH
+    dec a
+    add a, TOP_BOUNDING_BOX_OFFSET
+    ; Y portion of tile indexing
+    TileIndexY
+    ; X position of the point
+    ld a, [\1 + ENEMY_SPRITE_WORLD_X]
+    add a, TILE_WIDTH
+    add a, RIGHT_BOUNDING_BOX_OFFSET
+    ; X portion of tile indexing
+    TileIndexX
+    ; Sets the carry flag to 1 if the (a)th bit of [hl] is a 1, else 0.
+    vBit; a, [hl]
+    ; Set that collision flag if the desired tile bit is a 1
+    jr nc, .no_tr_collide\@
+        ld a, [\1 + ENEMY_COLLISION_FLAGS]
+        set COLLB_TOP_RIGHT, a
+        ld [\1 + ENEMY_COLLISION_FLAGS], a
+    .no_tr_collide\@
+endm
 
+; Right top collision point (1px to the right of the topmost pixel of the right edge)
+macro UpdateEnemyRTCollisionFlag
+    ; Y position of the point
+    ld a, [\1 + ENEMY_SPRITE_WORLD_Y]
+    add a, TILE_WIDTH
+    add a, TOP_BOUNDING_BOX_OFFSET
+    ; Y portion of tile indexing
+    TileIndexY
+    ; X position of the point
+    ld a, [\1 + ENEMY_SPRITE_WORLD_X]
+    add a, TILE_WIDTH
+    inc a
+    add a, RIGHT_BOUNDING_BOX_OFFSET
+    ; X portion of tile indexing
+    TileIndexX
+    ; Sets the carry flag to 1 if the (a)th bit of [hl] is a 1, else 0.
+    vBit; a, [hl]
+    ; Set that collision flag if the desired tile bit is a 1
+    jr nc, .no_rt_collide\@
+        ld a, [\1 + ENEMY_COLLISION_FLAGS]
+        set COLLB_RIGHT_TOP, a
+        ld [\1 + ENEMY_COLLISION_FLAGS], a
+    .no_rt_collide\@
+endm
+
+; Right bottom collision point (1px to the right of the bottommost pixel of the right edge)
+macro UpdateEnemyRBCollisionFlag
+    ; Y position of the point
+    ld a, [\1 + ENEMY_SPRITE_WORLD_Y]
+    add a, TILE_WIDTH
+    add a, TILE_WIDTH
+    add a, BOTTOM_BOUNDING_BOX_OFFSET
+    ; Y portion of tile indexing
+    TileIndexY
+    ; X position of the point
+    ld a, [\1 + ENEMY_SPRITE_WORLD_X]
+    add a, TILE_WIDTH
+    inc a
+    add a, RIGHT_BOUNDING_BOX_OFFSET
+    ; X portion of tile indexing
+    TileIndexX
+    ; Sets the carry flag to 1 if the (a)th bit of [hl] is a 1, else 0.
+    vBit; a, [hl]
+    ; Set that collision flag if the desired tile bit is a 1
+    jr nc, .no_rb_collide\@
+        ld a, [\1 + ENEMY_COLLISION_FLAGS]
+        set COLLB_RIGHT_BOTTOM, a
+        ld [\1 + ENEMY_COLLISION_FLAGS], a
+    .no_rb_collide\@
+endm
+
+; Bottom right collision point (1px below the rightmost pixel of the bottom edge)
+macro UpdateEnemyBRCollisionFlag
+    ; Y position of the point
+    ld a, [\1 + ENEMY_SPRITE_WORLD_Y]
+    add a, TILE_WIDTH
+    add a, TILE_WIDTH
+    inc a
+    add a, BOTTOM_BOUNDING_BOX_OFFSET
+    ; Y portion of tile indexing
+    TileIndexY
+    ; X position of the point
+    ld a, [\1 + ENEMY_SPRITE_WORLD_X]
+    add a, TILE_WIDTH
+    add a, RIGHT_BOUNDING_BOX_OFFSET
+    ; X portion of tile indexing
+    TileIndexX
+    ; Sets the carry flag to 1 if the (a)th bit of [hl] is a 1, else 0.
+    vBit; a, [hl]
+    ; Set that collision flag if the desired tile bit is a 1
+    jr nc, .no_br_collide\@
+        ld a, [\1 + ENEMY_COLLISION_FLAGS]
+        set COLLB_BOTTOM_RIGHT, a
+        ld [\1 + ENEMY_COLLISION_FLAGS], a
+    .no_br_collide\@
+endm
+
+; Bottom left collision point (1px below the leftmost pixel of the bottom edge)
+macro UpdateEnemyBLCollisionFlag
+    ; Y position of the point
+    ld a, [\1 + ENEMY_SPRITE_WORLD_Y]
+    add a, TILE_WIDTH
+    add a, TILE_WIDTH
+    inc a
+    add a, BOTTOM_BOUNDING_BOX_OFFSET
+    ; Y portion of tile indexing
+    TileIndexY
+    ; X position of the point
+    ld a, [\1 + ENEMY_SPRITE_WORLD_X]
+    add a, LEFT_BOUNDING_BOX_OFFSET
+    ; X portion of tile indexing
+    TileIndexX
+    ; Sets the carry flag to 1 if the (a)th bit of [hl] is a 1, else 0.
+    vBit; a, [hl]
+    ; Set that collision flag if the desired tile bit is a 1
+    jr nc, .no_bl_collide\@
+        ld a, [\1 + ENEMY_COLLISION_FLAGS]
+        set COLLB_BOTTOM_LEFT, a
+        ld [\1 + ENEMY_COLLISION_FLAGS], a
+    .no_bl_collide\@
+endm
+
+; Left bottom collision point (1px to the left of the bottommost pixel of the left edge)
+macro UpdateEnemyLBCollisionFlag
+    ; Y position of the point
+    ld a, [\1 + ENEMY_SPRITE_WORLD_Y]
+    add a, TILE_WIDTH
+    add a, TILE_WIDTH
+    add a, BOTTOM_BOUNDING_BOX_OFFSET
+    ; Y portion of tile indexing
+    TileIndexY
+    ; X position of the point
+    ld a, [\1 + ENEMY_SPRITE_WORLD_X]
+    dec a
+    add a, LEFT_BOUNDING_BOX_OFFSET
+    ; X portion of tile indexing
+    TileIndexX
+    ; Sets the carry flag to 1 if the (a)th bit of [hl] is a 1, else 0.
+    vBit; a, [hl]
+    ; Set that collision flag if the desired tile bit is a 1
+    jr nc, .no_lb_collide\@
+        ld a, [\1 + ENEMY_COLLISION_FLAGS]
+        set COLLB_LEFT_BOTTOM, a
+        ld [\1 + ENEMY_COLLISION_FLAGS], a
+    .no_lb_collide\@
+endm
+
+; Left top collision point (1px to the left of the topmost pixel of the left edge)
+macro UpdateEnemyLTCollisionFlag
+    ; Y position of the point
+    ld a, [\1 + ENEMY_SPRITE_WORLD_Y]
+    add a, TILE_WIDTH
+    add a, TOP_BOUNDING_BOX_OFFSET
+    ; Y portion of tile indexing
+    TileIndexY
+    
+    ; X position of the point
+    ld a, [\1 + ENEMY_SPRITE_WORLD_X]
+    dec a
+    add a, LEFT_BOUNDING_BOX_OFFSET
+    ; X portion of tile indexing
+    TileIndexX
+    ; Sets the carry flag to 1 if the (a)th bit of [hl] is a 1, else 0.
+    vBit; a, [hl]
+    ; Set that collision flag if the desired tile bit is a 1
+    jr nc, .no_lt_collide\@
+        ld a, [\1 + ENEMY_COLLISION_FLAGS]
+        set COLLB_LEFT_TOP, a
+        ld [\1 + ENEMY_COLLISION_FLAGS], a
+    .no_lt_collide\@
+endm
 
 macro UpdateEnemyCollisionFlags
     xor a
     ld [\1 + ENEMY_COLLISION_FLAGS], a
 
-    UpdateEnemyTLCollisionFlag
+    UpdateEnemyTLCollisionFlag \1, \2, \3
+    UpdateEnemyTRCollisionFlag \1, \2, \3
+    UpdateEnemyRTCollisionFlag \1, \2, \3
+    UpdateEnemyRBCollisionFlag \1, \2, \3
+    UpdateEnemyBRCollisionFlag \1, \2, \3
+    UpdateEnemyBLCollisionFlag \1, \2, \3
+    UpdateEnemyLBCollisionFlag \1, \2, \3
+    UpdateEnemyLTCollisionFlag \1, \2, \3
 endm
 
 macro ApplyIntendedX
@@ -495,6 +665,7 @@ endm
 
 macro UpdateEnemyData
     UpdateIntendedMovement \1, \2, \3
+    UpdateEnemyCollisionFlags \1, \2, \3
     ApplyIntendedMovement \1, \2, \3
     UpdateEnemyAnimationState \1, \2, \3
     ApplyEnemyAnimationState \1, \2, \3
