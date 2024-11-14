@@ -15,8 +15,11 @@ include "include/character.inc"
 def INIT_ENEMY_ANIMATION_DELAY      equ ($0F)
 def INIT_ENEMY_MOVEMENT_DELAY       equ ($03)
 
-def CHARACTER_COLLISION_RANGE_X     equ ($07)
-def CHARACTER_COLLISION_RANGE_Y     equ ($0F)
+def SPRITE_COLLISION_RANGE_X        equ ($07)
+def SPRITE_COLLISION_RANGE_Y        equ ($0F)
+
+def DEFAULT_MOVEB_X                 equ ($00)
+def DEFAULT_MOVEB_Y                 equ ($01)
 
 ; Relative memory position of enemy traits from \1
 rsreset
@@ -36,6 +39,21 @@ def ENEMY_MOVEMENT_DELAY_STATE      rb 1
 def ENEMY_INTENDED_MOVEMENT         rb 1
 def ENEMY_ANIM_CHANGED              rb 1
 def ENEMY_COLLISION_FLAGS           rb 1
+def ENEMY_DEFAULT_PATHING_FLAGS     rb 1
+
+def ENEMY_ATTRIBUTES_SIZE           equ (17)
+
+; Clears the WRAM bank of enemy attributes starting at \1
+macro ClearEnemyWram
+    ld c, ENEMY_ATTRIBUTES_SIZE
+    dec c
+    ld hl, \1
+    .clear_enemy_wram\@
+        ld [hl], 0
+        inc hl
+        dec c
+        jr nz, .clear_enemy_wram\@
+endm
 
 ; Initializing the enemy
 ; \1: Enemy data memory chunk
@@ -387,6 +405,112 @@ macro UpdateEnemyLTCollisionFlag
     .no_lt_collide\@
 endm
 
+macro CheckRightSpriteCollision
+    ld a, [\4 + ENEMY_SPRITE_WORLD_X]
+    ld b, a
+    ld a, [\1 + ENEMY_SPRITE_WORLD_X]
+    add a, SPRITE_COLLISION_RANGE_X
+    inc a
+    cp a, b
+    jp c, .no_right_collision\@
+    SwapAB
+    add a, SPRITE_COLLISION_RANGE_X
+    SwapAB
+    cp a, b
+    jp nc, .no_right_collision\@
+        ld a, [\1 + ENEMY_COLLISION_FLAGS]
+        set COLLB_RIGHT_TOP, a
+        set COLLB_RIGHT_BOTTOM, a
+        ld [\1 + ENEMY_COLLISION_FLAGS], a
+    .no_right_collision\@
+endm
+
+macro CheckLeftSpriteCollision
+    ld a, [\1 + ENEMY_SPRITE_WORLD_X]
+    ld b, a
+    ld a, [\4 + ENEMY_SPRITE_WORLD_X]
+    add a, SPRITE_COLLISION_RANGE_X
+    inc a
+    cp a, b
+    jp c, .no_right_collision\@
+    SwapAB
+    add a, SPRITE_COLLISION_RANGE_X
+    SwapAB
+    cp a, b
+    jp nc, .no_right_collision\@
+        ld a, [\1 + ENEMY_COLLISION_FLAGS]
+        set COLLB_LEFT_TOP, a
+        set COLLB_LEFT_BOTTOM, a
+        ld [\1 + ENEMY_COLLISION_FLAGS], a
+    .no_right_collision\@
+endm
+
+macro CheckBottomSpriteCollision
+    ld a, [\4 + ENEMY_SPRITE_WORLD_Y]
+    ld b, a
+    ld a, [\1 + ENEMY_SPRITE_WORLD_Y]
+    add a, SPRITE_COLLISION_RANGE_Y
+    inc a
+    cp a, b
+    jp c, .no_right_collision\@
+    SwapAB
+    add a, SPRITE_COLLISION_RANGE_Y
+    SwapAB
+    cp a, b
+    jp nc, .no_right_collision\@
+        ld a, [\1 + ENEMY_COLLISION_FLAGS]
+        set COLLB_BOTTOM_LEFT, a
+        set COLLB_BOTTOM_RIGHT, a
+        ld [\1 + ENEMY_COLLISION_FLAGS], a
+    .no_right_collision\@
+endm
+
+macro CheckTopSpriteCollision
+    ld a, [\1 + ENEMY_SPRITE_WORLD_Y]
+    ld b, a
+    ld a, [\4 + ENEMY_SPRITE_WORLD_Y]
+    add a, SPRITE_COLLISION_RANGE_Y
+    inc a
+    cp a, b
+    jp c, .no_top_collision\@
+    SwapAB
+    add a, SPRITE_COLLISION_RANGE_Y
+    SwapAB
+    cp a, b
+    jp nc, .no_top_collision\@
+        ld a, [\1 + ENEMY_COLLISION_FLAGS]
+        set COLLB_TOP_LEFT, a
+        set COLLB_TOP_RIGHT, a
+        ld [\1 + ENEMY_COLLISION_FLAGS], a
+    .no_top_collision\@
+endm
+
+; \1, \2, \3: This enemy's data, head, legs
+; \4: The other enemy's data
+macro UpdateEnemySpriteCollisionFlags
+    ld a, [\4 + ENEMY_SPRITE_WORLD_X]
+    ld b, a
+    ld a, [\1 + ENEMY_SPRITE_WORLD_X]
+    SubAbsolute
+
+    cp a, SPRITE_COLLISION_RANGE_X
+    jp nc, .no_collision\@
+    ld a, [\4 + ENEMY_SPRITE_WORLD_Y]
+    ld b, a
+    ld a, [\1 + ENEMY_SPRITE_WORLD_Y]
+    SubAbsolute
+
+    cp a, SPRITE_COLLISION_RANGE_Y
+    jp nc, .no_collision\@
+
+    ; collision!!!!!!
+        CheckRightSpriteCollision \1, \2, \3, \4
+        CheckLeftSpriteCollision \1, \2, \3, \4
+        CheckBottomSpriteCollision \1, \2, \3, \4
+
+    .no_collision\@
+endm
+
 macro UpdateEnemyCollisionFlags
     xor a
     ld [\1 + ENEMY_COLLISION_FLAGS], a
@@ -399,6 +523,7 @@ macro UpdateEnemyCollisionFlags
     UpdateEnemyBLCollisionFlag \1, \2, \3
     UpdateEnemyLBCollisionFlag \1, \2, \3
     UpdateEnemyLTCollisionFlag \1, \2, \3
+    UpdateEnemySpriteCollisionFlags \1, \2, \3, \4
 endm
 
 macro ApplyIntendedX
@@ -439,6 +564,192 @@ macro ApplyIntendedY
     .end_movement\@
 endm
 
+; Combines the intended movement and collision data into (a) such that
+; the collision flags are only set if we are also moving in that direction 
+macro CombineMoveCollide
+    ld a, [\1 + ENEMY_INTENDED_MOVEMENT]
+    ld b, a
+    ld a, [\1 + ENEMY_COLLISION_FLAGS]
+    and a, b
+    SwapAB
+    srl a
+    srl a
+    srl a
+    srl a
+    or a, $F0
+    SwapAB
+    and a, b
+    
+endm
+
+
+
+macro YCollisionPathfinding
+    ld a, [\1 + ENEMY_DEFAULT_PATHING_FLAGS]
+    bit DEFAULT_MOVEB_X, a
+    jp nz, .defaulting_right\@
+    ; Defaulting left
+        ; if default movement left and wall left: Change default to right
+        ld a, [\1 + ENEMY_COLLISION_FLAGS]
+        bit COLLB_LEFT_BOTTOM, a
+        jp nz, .change_default_to_right\@
+        ld a, [\1 + ENEMY_COLLISION_FLAGS]
+        bit COLLB_LEFT_TOP, a
+        jp z, .set_intended_movement\@
+    .change_default_to_right\@
+        ; Changing default to right
+        ld a, [\1 + ENEMY_DEFAULT_PATHING_FLAGS]
+        set DEFAULT_MOVEB_X, a
+        ld [\1 + ENEMY_DEFAULT_PATHING_FLAGS], a
+        jp .set_intended_movement\@
+    .defaulting_right\@
+        ; if default movement right and wall right: Change default to left
+        ld a, [\1 + ENEMY_COLLISION_FLAGS]
+        bit COLLB_RIGHT_BOTTOM, a
+        jp nz, .change_default_to_left\@
+        ld a, [\1 + ENEMY_COLLISION_FLAGS]
+        bit COLLB_RIGHT_TOP, a
+        jp z, .set_intended_movement\@
+    .change_default_to_left\@
+        ; changing default to left
+        ld a, [\1 + ENEMY_DEFAULT_PATHING_FLAGS]
+        res DEFAULT_MOVEB_X, a
+        ld [\1 + ENEMY_DEFAULT_PATHING_FLAGS], a
+        jp .set_intended_movement\@
+    .set_intended_movement\@
+        ; Set the intended movement to the default X movement
+        ld a, [\1 + ENEMY_DEFAULT_PATHING_FLAGS]
+        bit DEFAULT_MOVEB_X, a
+        jp nz, .set_move_right\@
+        ; Set move left
+            copy [\1 + ENEMY_INTENDED_MOVEMENT], PADF_LEFT
+            jp .done\@
+        .set_move_right\@
+            copy [\1 + ENEMY_INTENDED_MOVEMENT], PADF_RIGHT
+    .done\@
+endm
+
+macro XCollisionPathfinding
+    ld a, [\1 + ENEMY_DEFAULT_PATHING_FLAGS]
+    bit DEFAULT_MOVEB_Y, a
+    jp nz, .defaulting_up\@
+    ; Defaulting down
+        ; if default movement down and wall down: Change default to up
+        ld a, [\1 + ENEMY_COLLISION_FLAGS]
+        bit COLLB_BOTTOM_LEFT, a
+        jp nz, .change_default_to_up\@
+        ld a, [\1 + ENEMY_COLLISION_FLAGS]
+        bit COLLB_BOTTOM_RIGHT, a
+        jp z, .set_intended_movement\@
+    .change_default_to_up\@
+        ; Changing default to right
+        ld a, [\1 + ENEMY_DEFAULT_PATHING_FLAGS]
+        set DEFAULT_MOVEB_Y, a
+        ld [\1 + ENEMY_DEFAULT_PATHING_FLAGS], a
+        jp .set_intended_movement\@
+    .defaulting_up\@
+        ; if default movement right and wall right: Change default to left
+        ld a, [\1 + ENEMY_COLLISION_FLAGS]
+        bit COLLB_TOP_RIGHT, a
+        jp nz, .change_default_to_down\@
+        ld a, [\1 + ENEMY_COLLISION_FLAGS]
+        bit COLLB_TOP_LEFT, a
+        jp z, .set_intended_movement\@
+    .change_default_to_down\@
+        ; changing default to up
+        ld a, [\1 + ENEMY_DEFAULT_PATHING_FLAGS]
+        res DEFAULT_MOVEB_Y, a
+        ld [\1 + ENEMY_DEFAULT_PATHING_FLAGS], a
+        jp .set_intended_movement\@
+    .set_intended_movement\@
+        ; Set the intended movement to the default Y movement
+        ld a, [\1 + ENEMY_DEFAULT_PATHING_FLAGS]
+        bit DEFAULT_MOVEB_Y, a
+        jp nz, .set_move_up\@
+        ; Set move down
+            copy [\1 + ENEMY_INTENDED_MOVEMENT], PADF_DOWN
+            jp .done\@
+        .set_move_up\@
+            copy [\1 + ENEMY_INTENDED_MOVEMENT], PADF_UP
+    .done\@
+endm
+
+macro ResetXPathfinding
+    ld a, [\1 + ENEMY_SPRITE_WORLD_Y]
+    ld b, a
+    ld a, [CHARACTER_SPRITE_WORLD_Y]
+    cp a, b
+    jp c, .enemy_below_char\@
+    ; enemy above char
+        ld a, [ENEMY_DEFAULT_PATHING_FLAGS]
+        set DEFAULT_MOVEB_Y, a
+        ld [ENEMY_DEFAULT_PATHING_FLAGS], a
+        jp .done\@
+    .enemy_below_char\@
+        ld a, [ENEMY_DEFAULT_PATHING_FLAGS]
+        res DEFAULT_MOVEB_Y, a
+        ld [ENEMY_DEFAULT_PATHING_FLAGS], a
+    .done\@
+endm
+
+macro ResetYPathfinding
+    ld a, [\1 + ENEMY_SPRITE_WORLD_X]
+    ld b, a
+    ld a, [CHARACTER_SPRITE_WORLD_X]
+    cp a, b
+    jp c, .enemy_right_char\@
+    ; enemy left of char
+        ld a, [ENEMY_DEFAULT_PATHING_FLAGS]
+        set DEFAULT_MOVEB_X, a
+        ld [ENEMY_DEFAULT_PATHING_FLAGS], a
+        jp .done\@
+    .enemy_right_char\@
+        ld a, [ENEMY_DEFAULT_PATHING_FLAGS]
+        res DEFAULT_MOVEB_X, a
+        ld [ENEMY_DEFAULT_PATHING_FLAGS], a
+    .done\@
+endm
+
+macro UpdateIntededCollision
+    CombineMoveCollide \1, \2, \3
+
+    jp z, .no_change\@
+        ; giga if else
+        bit COLLB_BOTTOM_LEFT, a
+        jp nz, .colliding_Y\@
+        bit COLLB_TOP_LEFT, a
+        jp nz, .colliding_Y\@
+        bit COLLB_BOTTOM_RIGHT, a
+        jp nz, .colliding_Y\@
+        bit COLLB_TOP_RIGHT, a
+        jp z, .no_colliding_Y\@
+    .colliding_Y\@
+        CombineMoveCollide \1, \2, \3
+        YCollisionPathfinding \1, \2, \3
+
+    .no_colliding_Y\@
+        ResetYPathfinding \1, \2, \3
+        CombineMoveCollide \1, \2, \3
+        bit COLLB_LEFT_BOTTOM, a
+        jp nz, .colliding_X\@
+        bit COLLB_RIGHT_BOTTOM, a
+        jp nz, .colliding_X\@
+        bit COLLB_LEFT_TOP, a
+        jp nz, .colliding_X\@
+        bit COLLB_RIGHT_TOP, a
+        jp z, .no_colliding_X\@
+    .colliding_X\@
+        CombineMoveCollide \1, \2, \3
+        XCollisionPathfinding \1, \2, \3
+    .no_colliding_X\@
+        ResetXPathfinding \1, \2, \3
+        jp .done\@
+    .no_change\@
+        ResetXPathfinding \1, \2, \3
+        ResetYPathfinding \1, \2, \3
+    .done\@
+endm
+
 macro ApplyIntendedMovement
     ; Does the enemy move this framme?
     ld a, [\1 + ENEMY_MOVEMENT_DELAY]
@@ -458,10 +769,10 @@ endm
 ; \2: Enemy head OAM location, \3: Enemy legs OAM location
 macro CharacterCollision
     ld a, [\1 + DISTANCE_TO_CHAR_X]
-    cp a, CHARACTER_COLLISION_RANGE_X
+    cp a, SPRITE_COLLISION_RANGE_X
     jr nc, .no_collision_enemy\@
     ld a, [\1 + DISTANCE_TO_CHAR_Y]
-    cp a, CHARACTER_COLLISION_RANGE_Y
+    cp a, SPRITE_COLLISION_RANGE_Y
     jr nc, .no_collision_enemy\@
     ; collision!!!!!!
     copy [rGSF], rGSF_TITLE
@@ -665,7 +976,8 @@ endm
 
 macro UpdateEnemyData
     UpdateIntendedMovement \1, \2, \3
-    UpdateEnemyCollisionFlags \1, \2, \3
+    UpdateEnemyCollisionFlags \1, \2, \3, \4
+    UpdateIntededCollision \1, \2, \3
     ApplyIntendedMovement \1, \2, \3
     UpdateEnemyAnimationState \1, \2, \3
     ApplyEnemyAnimationState \1, \2, \3

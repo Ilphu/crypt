@@ -45,6 +45,26 @@ def COLLISION_MAP_ADDRESS_END       equ (COLLISION_MAP_ADDRESS_START + $80)
 include "include/character.inc"
 include "include/timer.inc"
 
+macro WaitForVBlankEnd
+    .wait_vblank\@
+        ld a, [rLY]
+        cp a, $0
+        jr nz, .wait_vblank\@
+endm
+
+; Turns off the LCD during vblank
+macro DisableLCD
+    ; wait for the vblank
+    .wait_vblank\@
+        ld a, [rLY]
+        cp a, SCRN_Y
+        jr nz, .wait_vblank\@
+
+    ; turn the LCD off
+    xor a
+    ld [rLCDC], a
+endm
+
 ; load the graphics data from ROM to VRAM
 macro LoadGraphicsDataIntoVRAM
     ld de, GRAPHICS_DATA_ADDRESS_START
@@ -108,6 +128,9 @@ macro InitTitle
     ld [rIE], a
     ei
 
+    ClearEnemyWram ENEMY1_DATA
+    ClearEnemyWram ENEMY2_DATA
+
     ld a, LCDCF_ON | LCDCF_WIN9C00 | LCDCF_BG8800 | LCDCF_BG9800 | LCDCF_OBJ8 | LCDCF_OBJOFF | LCDCF_BGON | LCDCF_WINON
     ld [rLCDC], a
 
@@ -130,7 +153,7 @@ endm
 
 ; initialize the graphics for the game loop
 macro InitGraphics
-    InitOAM
+    InitOAM 
 
     ld a, SPRITE_PALETTE_1
     ld [rOBP0], a

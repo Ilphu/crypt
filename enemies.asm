@@ -13,12 +13,12 @@ include "include/enemy.inc"
 section "enemy", rom0
 
 update_enemies_data:
-    UpdateEnemyData ENEMY1_DATA, ENEMY1_SPRITE_HEAD, ENEMY1_SPRITE_LEGS
+    UpdateEnemyData ENEMY1_DATA, ENEMY1_SPRITE_HEAD, ENEMY1_SPRITE_LEGS, ENEMY2_DATA
 
     ld a, [rGSF]
     bit rGSB_LVL2, a
     jp z, .no_update_enemy_2
-        UpdateEnemyData ENEMY2_DATA, ENEMY2_SPRITE_HEAD, ENEMY2_SPRITE_LEGS
+        UpdateEnemyData ENEMY2_DATA, ENEMY2_SPRITE_HEAD, ENEMY2_SPRITE_LEGS, ENEMY1_DATA
     .no_update_enemy_2
 
     ret

@@ -21,13 +21,6 @@ section "vblank_interrupt", rom0[$0040]
 
 section "game", rom0
 
-macro WaitForVBlankEnd
-    .wait_vblank\@
-        ld a, [rLY]
-        cp a, $0
-        jr nz, .wait_vblank\@
-endm
-
 ; Initialize the palette, vblank interrupt, window, and LCD.
 init_game:
     InitGraphics

@@ -16,23 +16,23 @@ def SPRITE_X_OFFSET                 equ (8)
 def SPRITE_Y_OFFSET                 equ (16)
 
 ; Sprite Collision Flag Constants
-def COLLF_TOP_LEFT                  equ $80
-def COLLF_TOP_RIGHT                 equ $40
-def COLLF_RIGHT_TOP                 equ $20
+def COLLF_BOTTOM_LEFT               equ $80
+def COLLF_TOP_LEFT                  equ $40
+def COLLF_LEFT_BOTTOM               equ $20
 def COLLF_RIGHT_BOTTOM              equ $10
 def COLLF_BOTTOM_RIGHT              equ $08
-def COLLF_BOTTOM_LEFT               equ $04
-def COLLF_LEFT_BOTTOM               equ $02
-def COLLF_LEFT_TOP                  equ $01
+def COLLF_TOP_RIGHT                 equ $04
+def COLLF_LEFT_TOP                  equ $02
+def COLLF_RIGHT_TOP                 equ $01
 
-def COLLB_TOP_LEFT                  equ $07
-def COLLB_TOP_RIGHT                 equ $06
-def COLLB_RIGHT_TOP                 equ $05
+def COLLB_BOTTOM_LEFT               equ $07
+def COLLB_TOP_LEFT                  equ $06
+def COLLB_LEFT_BOTTOM               equ $05
 def COLLB_RIGHT_BOTTOM              equ $04
 def COLLB_BOTTOM_RIGHT              equ $03
-def COLLB_BOTTOM_LEFT               equ $02
-def COLLB_LEFT_BOTTOM               equ $01
-def COLLB_LEFT_TOP                  equ $00
+def COLLB_TOP_RIGHT                 equ $02
+def COLLB_LEFT_TOP                  equ $01
+def COLLB_RIGHT_TOP                 equ $00
 
 ; Bounding box offsets
 def TOP_BOUNDING_BOX_OFFSET         equ 3
