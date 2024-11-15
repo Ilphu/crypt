@@ -46,7 +46,6 @@ def ENEMY_ATTRIBUTES_SIZE           equ (17)
 ; Clears the WRAM bank of enemy attributes starting at \1
 macro ClearEnemyWram
     ld c, ENEMY_ATTRIBUTES_SIZE
-    dec c
     ld hl, \1
     .clear_enemy_wram\@
         ld [hl], 0
@@ -582,8 +581,6 @@ macro CombineMoveCollide
     
 endm
 
-
-
 macro YCollisionPathfinding
     ld a, [\1 + ENEMY_DEFAULT_PATHING_FLAGS]
     bit DEFAULT_MOVEB_X, a
@@ -681,14 +678,14 @@ macro ResetXPathfinding
     cp a, b
     jp c, .enemy_below_char\@
     ; enemy above char
-        ld a, [ENEMY_DEFAULT_PATHING_FLAGS]
-        set DEFAULT_MOVEB_Y, a
-        ld [ENEMY_DEFAULT_PATHING_FLAGS], a
+        ld a, [\1 + ENEMY_DEFAULT_PATHING_FLAGS]
+        res DEFAULT_MOVEB_Y, a
+        ld [\1 + ENEMY_DEFAULT_PATHING_FLAGS], a
         jp .done\@
     .enemy_below_char\@
-        ld a, [ENEMY_DEFAULT_PATHING_FLAGS]
-        res DEFAULT_MOVEB_Y, a
-        ld [ENEMY_DEFAULT_PATHING_FLAGS], a
+        ld a, [\1 + ENEMY_DEFAULT_PATHING_FLAGS]
+        set DEFAULT_MOVEB_Y, a
+        ld [\1 + ENEMY_DEFAULT_PATHING_FLAGS], a
     .done\@
 endm
 
@@ -699,22 +696,20 @@ macro ResetYPathfinding
     cp a, b
     jp c, .enemy_right_char\@
     ; enemy left of char
-        ld a, [ENEMY_DEFAULT_PATHING_FLAGS]
+        ld a, [\1 + ENEMY_DEFAULT_PATHING_FLAGS]
         set DEFAULT_MOVEB_X, a
-        ld [ENEMY_DEFAULT_PATHING_FLAGS], a
+        ld [\1 + ENEMY_DEFAULT_PATHING_FLAGS], a
         jp .done\@
     .enemy_right_char\@
-        ld a, [ENEMY_DEFAULT_PATHING_FLAGS]
+        ld a, [\1 + ENEMY_DEFAULT_PATHING_FLAGS]
         res DEFAULT_MOVEB_X, a
-        ld [ENEMY_DEFAULT_PATHING_FLAGS], a
+        ld [\1 + ENEMY_DEFAULT_PATHING_FLAGS], a
     .done\@
 endm
 
 macro UpdateIntededCollision
     CombineMoveCollide \1, \2, \3
-
     jp z, .no_change\@
-        ; giga if else
         bit COLLB_BOTTOM_LEFT, a
         jp nz, .colliding_Y\@
         bit COLLB_TOP_LEFT, a
@@ -726,9 +721,10 @@ macro UpdateIntededCollision
     .colliding_Y\@
         CombineMoveCollide \1, \2, \3
         YCollisionPathfinding \1, \2, \3
-
+        jp .done\@
     .no_colliding_Y\@
         ResetYPathfinding \1, \2, \3
+    
         CombineMoveCollide \1, \2, \3
         bit COLLB_LEFT_BOTTOM, a
         jp nz, .colliding_X\@
@@ -741,6 +737,7 @@ macro UpdateIntededCollision
     .colliding_X\@
         CombineMoveCollide \1, \2, \3
         XCollisionPathfinding \1, \2, \3
+        jp .done\@
     .no_colliding_X\@
         ResetXPathfinding \1, \2, \3
         jp .done\@
