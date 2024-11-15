@@ -567,8 +567,10 @@ endm
 ; the collision flags are only set if we are also moving in that direction 
 macro CombineMoveCollide
     ld a, [\1 + ENEMY_INTENDED_MOVEMENT]
+    or a, $0F
     ld b, a
     ld a, [\1 + ENEMY_COLLISION_FLAGS]
+
     and a, b
     SwapAB
     srl a
@@ -707,7 +709,7 @@ macro ResetYPathfinding
     .done\@
 endm
 
-macro UpdateIntededCollision
+macro UpdateIntendedCollision
     CombineMoveCollide \1, \2, \3
     jp z, .no_change\@
         bit COLLB_BOTTOM_LEFT, a
@@ -719,7 +721,7 @@ macro UpdateIntededCollision
         bit COLLB_TOP_RIGHT, a
         jp z, .no_colliding_Y\@
     .colliding_Y\@
-        CombineMoveCollide \1, \2, \3
+        ;CombineMoveCollide \1, \2, \3
         YCollisionPathfinding \1, \2, \3
         jp .done\@
     .no_colliding_Y\@
@@ -735,7 +737,7 @@ macro UpdateIntededCollision
         bit COLLB_RIGHT_TOP, a
         jp z, .no_colliding_X\@
     .colliding_X\@
-        CombineMoveCollide \1, \2, \3
+        ;CombineMoveCollide \1, \2, \3
         XCollisionPathfinding \1, \2, \3
         jp .done\@
     .no_colliding_X\@
@@ -974,7 +976,7 @@ endm
 macro UpdateEnemyData
     UpdateIntendedMovement \1, \2, \3
     UpdateEnemyCollisionFlags \1, \2, \3, \4
-    UpdateIntededCollision \1, \2, \3
+    UpdateIntendedCollision \1, \2, \3
     ApplyIntendedMovement \1, \2, \3
     UpdateEnemyAnimationState \1, \2, \3
     ApplyEnemyAnimationState \1, \2, \3

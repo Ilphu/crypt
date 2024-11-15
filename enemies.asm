@@ -9,6 +9,7 @@ include "include/pointers.inc"
 include "include/sprites.inc"
 include "include/joypad.inc"
 include "include/enemy.inc"
+include "include/spirit.inc"
 
 section "enemy", rom0
 
