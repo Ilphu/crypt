@@ -121,6 +121,10 @@ export init_title_screen
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Strings to print
+LEVEL_3_STRING_1:
+    db "  THE ZOMBIES   \0"
+LEVEL_3_STRING_2:
+    db "ARE COMING\0"
 LEVEL_2_STRING_1:
     db "ANOTHER CREATURE\0"
 LEVEL_2_STRING_2:

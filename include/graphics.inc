@@ -117,6 +117,21 @@ macro PrintLvl2Text
     call print_text
 endm
 
+macro PrintLvl3Text
+    ld de, CLEAR_PRINT_LOC_1
+    ld bc, CLEAR_STRING
+    call print_text
+    ld de, CLEAR_PRINT_LOC_2
+    ld bc, CLEAR_STRING
+    call print_text
+    ld de, LEVEL_3_PRINT_LOC_1
+    ld bc, LEVEL_3_STRING_1
+    call print_text
+    ld de, LEVEL_3_PRINT_LOC_2
+    ld bc, LEVEL_3_STRING_2
+    call print_text
+endm
+
 ; initialze the title
 macro InitTitle
     ld a, BACKGROUND_PALETTE
@@ -149,6 +164,12 @@ macro InitTitle
     jr z, .not_lvl_2
         PrintLvl2Text
     .not_lvl_2
+    ;level 3 text anouncement
+    ld a, [rGSF]
+    bit rGSB_LVL3, a
+    jr z, .not_lvl_3
+        PrintLvl3Text
+    .not_lvl_3
 endm
 
 ; initialize the graphics for the game loop

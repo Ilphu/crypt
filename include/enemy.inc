@@ -980,6 +980,7 @@ macro UpdateEnemyData
     ApplyIntendedMovement \1, \2, \3
     UpdateEnemyAnimationState \1, \2, \3
     ApplyEnemyAnimationState \1, \2, \3
+    CharacterCollision \1, \2, \3
 endm
 
 endc

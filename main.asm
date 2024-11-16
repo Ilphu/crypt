@@ -44,6 +44,17 @@ main:
         halt
         call init_game
         Lvl2Loop
+    ld a, [rGSF]
+    bit rGSB_TITLE, a
+    jp nz, .main_title
+    .lvl_3_title
+        DisableLCD
+        call init_title_screen
+        Lvl2TitleLoop
+    .lvl_3
+        halt
+        call init_game
+        Lvl2Loop
     jp .main_title
     
         

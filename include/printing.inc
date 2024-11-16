@@ -9,6 +9,8 @@ def PRINTING_INC equ 1
 ; Printing constants
 def ASCII_TO_TILESET_OFFSET         equ ($20)
 
+def LEVEL_3_PRINT_LOC_1           equ ($9C22)
+def LEVEL_3_PRINT_LOC_2           equ ($9C45)
 def LEVEL_2_PRINT_LOC_1           equ ($9C22)
 def LEVEL_2_PRINT_LOC_2           equ ($9C45)
 def CLEAR_PRINT_LOC_1             equ ($9C21)

@@ -13,7 +13,7 @@ def ONES_RESET_VALUE        equ ($09)
 def TIMER_ROLLOVER_VLAUE    equ ($FF)
 
 def INIT_TIMER_ONES         equ ($00)
-def INIT_TIMER_TENS         equ ($06)
+def INIT_TIMER_TENS         equ ($01)
 
 ; initializing the timer sprites
 macro InitTimer
@@ -69,12 +69,15 @@ macro UpdateTimer
     jp nz, .display_timer
     ; If the timer is over, raise the appropriate flag
     ld a, [rGSF]
+    bit rGSB_LVL1, a
+    jr nz, .next_lvl
     bit rGSB_LVL2, a
-    jr z, .next_lvl
+    jr nz, .next_lvl
     copy [rGSF], rGSF_TITLE
     jp .display_timer
     .next_lvl
-        copy [rGSF], rGSF_LVL2
+        sla a
+        ld [rGSF], a
     .display_timer
         DisplayTimerValue
     .done_updating_timer
