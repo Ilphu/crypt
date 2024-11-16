@@ -774,7 +774,7 @@ macro CharacterCollision
     cp a, SPRITE_COLLISION_RANGE_Y
     jr nc, .no_collision_enemy\@
     ; collision!!!!!!
-    copy [rGSF], rGSF_TITLE
+    copy [rGSF], rGSF_CHAR_DEATH
     .no_collision_enemy\@
 endm
 

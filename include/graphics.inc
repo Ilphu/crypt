@@ -23,6 +23,7 @@ def GRAPHICS_DATA_ADDRESS_START \
 
 def BACKGROUND_PALETTE              equ (%11100100)
 def SPRITE_PALETTE_1                equ (%11010000)
+def SPRITE_PALETTE_2                equ (%01101100)
 
 def BG_START_X                      equ (0)
 def BG_START_Y                      equ (0)
@@ -180,6 +181,8 @@ macro InitGraphics
 
     ld a, SPRITE_PALETTE_1
     ld [rOBP0], a
+    ld a, SPRITE_PALETTE_2
+    ld [rOBP1], a
 
     copy [rSCX], BG_START_X
     copy [rSCY], BG_START_Y

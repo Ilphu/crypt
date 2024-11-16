@@ -21,12 +21,14 @@ def rGSF_LVL1           equ %00000010
 def rGSF_LVL2           equ %00000100
 def rGSF_LVL3           equ %00001000
 def rGSF_END            equ %00010000
+def rGSF_CHAR_DEATH     equ %10000000
 
 def rGSB_TITLE          equ ($00)
 def rGSB_LVL1           equ ($01)
 def rGSB_LVL2           equ ($02)
 def rGSB_LVL3           equ ($03)
 def rGSB_END            equ ($04)
+def rGSB_CHAR_DEATH     equ ($07)
 
 ; logic for the title 
 macro TitleLoop
@@ -85,6 +87,36 @@ macro Lvl3Loop
         ld a, [rGSF]
         bit rGSB_LVL3, a
         jr nz, .lvl_3_loop\@
+endm
+
+macro CharDeathAnimation
+    .char_death_anim\@
+        halt
+        ld a, [CHAR_DEATH_ANIM_STATE]
+        and a, CHAR_DEATH_ANIM_DELAY
+        jr nz, .wait\@
+            ld a, [CHARACTER_SPRITE_HEAD + OAMA_FLAGS]
+            bit OAMB_PAL1, a
+            jp z, .to_pal1\@
+                copy [CHARACTER_SPRITE_HEAD + OAMA_FLAGS], OAMF_PAL0
+                copy [CHARACTER_SPRITE_LEGS + OAMA_FLAGS], OAMF_PAL0
+                jr .skip\@
+            .to_pal1\@
+                copy [CHARACTER_SPRITE_HEAD + OAMA_FLAGS], OAMF_PAL1
+                copy [CHARACTER_SPRITE_LEGS + OAMA_FLAGS], OAMF_PAL1
+            .skip\@
+            ld a, [CHAR_DEATH_NUM_FLASHES_STATE]
+            inc a
+            ld [CHAR_DEATH_NUM_FLASHES_STATE], a
+        .wait\@
+        ld a, [CHAR_DEATH_ANIM_STATE]
+        inc a
+        ld [CHAR_DEATH_ANIM_STATE], a
+
+        ld a, [CHAR_DEATH_NUM_FLASHES_STATE]
+        cp a, CHAR_DEATH_NUM_FLASHES
+        jp c, .char_death_anim\@
+        copy [rGSF], rGSF_TITLE
 endm
 
 endc

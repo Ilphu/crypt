@@ -35,6 +35,8 @@ def CHARACTER_CAN_SPRINT            rb 1
 def SPRINT_RECHARGE_DELAY_STATE     rb 1
 def CHARACTER_ANIM_CHANGED          rb 1
 def CHARACTER_COLLISION_FLAGS       rb 1
+def CHAR_DEATH_ANIM_STATE           rb 1
+def CHAR_DEATH_NUM_FLASHES_STATE    rb 1
 
 ; enemy data chunks
 def ENEMY1_DATA                     rb 17

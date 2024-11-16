@@ -33,9 +33,13 @@ main:
         DisableLCD
         call init_game
         Lvl1Loop
+        
     ld a, [rGSF]
     bit rGSB_TITLE, a
     jp nz, .main_title
+    bit rGSB_CHAR_DEATH, a
+    jp nz, .char_death_anim
+
     .lvl_2_title
         DisableLCD
         call init_title_screen
@@ -44,9 +48,13 @@ main:
         halt
         call init_game
         Lvl2Loop
+
     ld a, [rGSF]
     bit rGSB_TITLE, a
     jp nz, .main_title
+    bit rGSB_CHAR_DEATH, a
+    jp nz, .char_death_anim
+
     .lvl_3_title
         DisableLCD
         call init_title_screen
@@ -55,6 +63,15 @@ main:
         halt
         call init_game
         Lvl3Loop
+
+    ld a, [rGSF]
+    bit rGSB_TITLE, a
+    jp nz, .main_title
+    bit rGSB_CHAR_DEATH, a
+    jp nz, .char_death_anim
+
+    .char_death_anim
+        CharDeathAnimation
     jp .main_title
     
         

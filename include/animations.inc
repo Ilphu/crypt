@@ -35,6 +35,11 @@ def UP_ANIMATION_END                equ ($10)
 def SIDE_ANIMATION_START            equ ($08)
 def SIDE_ANIMATION_END              equ ($0A)
 
+def CHAR_DEATH_ANIM_DELAY          equ ($0F)
+def CHAR_DEATH_NUM_FLASHES         equ ($06)
+def INIT_CHAR_DEATH_ANIM_STATE     equ ($00)
+def INIT_CHAR_DEATH_NUM_FLASHES_STATE equ ($00)
+
 def ENEMY_ANIMATION_OFFSET          equ ($1B)
 
 endc
