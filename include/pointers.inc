@@ -39,6 +39,8 @@ def CHARACTER_COLLISION_FLAGS       rb 1
 ; enemy data chunks
 def ENEMY1_DATA                     rb 17
 def ENEMY2_DATA                     rb 17
+def ENEMY3_DATA                     rb 17
+def ENEMY4_DATA                     rb 17
 def SPIRIT_DATA                     rb 17
 
 ; Timer values

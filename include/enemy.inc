@@ -976,6 +976,8 @@ endm
 macro UpdateEnemyData
     UpdateIntendedMovement \1, \2, \3
     UpdateEnemyCollisionFlags \1, \2, \3, \4
+    UpdateEnemyCollisionFlags \1, \2, \3, \5
+    UpdateEnemyCollisionFlags \1, \2, \3, \6
     UpdateIntendedCollision \1, \2, \3
     ApplyIntendedMovement \1, \2, \3
     UpdateEnemyAnimationState \1, \2, \3

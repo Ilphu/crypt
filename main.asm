@@ -50,11 +50,11 @@ main:
     .lvl_3_title
         DisableLCD
         call init_title_screen
-        Lvl2TitleLoop
+        Lvl3TitleLoop
     .lvl_3
         halt
         call init_game
-        Lvl2Loop
+        Lvl3Loop
     jp .main_title
     
         

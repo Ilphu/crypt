@@ -145,6 +145,8 @@ macro InitTitle
 
     ClearEnemyWram ENEMY1_DATA
     ClearEnemyWram ENEMY2_DATA
+    ClearEnemyWram ENEMY3_DATA
+    ClearEnemyWram ENEMY4_DATA
 
     ld a, LCDCF_ON | LCDCF_WIN9C00 | LCDCF_BG8800 | LCDCF_BG9800 | LCDCF_OBJ8 | LCDCF_OBJOFF | LCDCF_BGON | LCDCF_WINON
     ld [rLCDC], a

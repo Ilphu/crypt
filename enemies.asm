@@ -14,14 +14,20 @@ include "include/spirit.inc"
 section "enemy", rom0
 
 update_enemies_data:
-    UpdateEnemyData ENEMY1_DATA, ENEMY1_SPRITE_HEAD, ENEMY1_SPRITE_LEGS, ENEMY2_DATA
+    UpdateEnemyData ENEMY1_DATA, ENEMY1_SPRITE_HEAD, ENEMY1_SPRITE_LEGS, ENEMY2_DATA, ENEMY3_DATA, ENEMY4_DATA
 
     ld a, [rGSF]
     bit rGSB_LVL2, a
     jp z, .no_update_enemy_2
-        UpdateEnemyData ENEMY2_DATA, ENEMY2_SPRITE_HEAD, ENEMY2_SPRITE_LEGS, ENEMY1_DATA
+        UpdateEnemyData ENEMY2_DATA, ENEMY2_SPRITE_HEAD, ENEMY2_SPRITE_LEGS, ENEMY1_DATA, ENEMY3_DATA, ENEMY4_DATA
     .no_update_enemy_2
-
+    ld a, [rGSF]
+    bit rGSB_LVL3, a
+    jp z, .no_update_enemy_3
+        UpdateEnemyData ENEMY2_DATA, ENEMY2_SPRITE_HEAD, ENEMY2_SPRITE_LEGS, ENEMY1_DATA, ENEMY3_DATA, ENEMY4_DATA
+        UpdateEnemyData ENEMY3_DATA, ENEMY3_SPRITE_HEAD, ENEMY3_SPRITE_LEGS, ENEMY1_DATA, ENEMY2_DATA, ENEMY4_DATA
+        UpdateEnemyData ENEMY4_DATA, ENEMY4_SPRITE_HEAD, ENEMY4_SPRITE_LEGS, ENEMY1_DATA, ENEMY2_DATA, ENEMY3_DATA
+    .no_update_enemy_3
     ret
 
 update_enemies_visuals:
@@ -33,6 +39,19 @@ update_enemies_visuals:
         AnimateEnemy ENEMY2_DATA, ENEMY2_SPRITE_HEAD, ENEMY2_SPRITE_LEGS
         UpdateSpritePos16 ENEMY2_SPRITE_HEAD, ENEMY2_SPRITE_LEGS, ENEMY2_DATA + ENEMY_SPRITE_WORLD_X, ENEMY2_DATA + ENEMY_SPRITE_WORLD_Y
     .no_update_enemy_2
+    
+    ld a, [rGSF]
+    bit rGSB_LVL3, a
+    jp z, .no_update_enemy_3
+        AnimateEnemy ENEMY2_DATA, ENEMY2_SPRITE_HEAD, ENEMY2_SPRITE_LEGS
+        UpdateSpritePos16 ENEMY2_SPRITE_HEAD, ENEMY2_SPRITE_LEGS, ENEMY2_DATA + ENEMY_SPRITE_WORLD_X, ENEMY2_DATA + ENEMY_SPRITE_WORLD_Y
+
+        AnimateEnemy ENEMY3_DATA, ENEMY3_SPRITE_HEAD, ENEMY3_SPRITE_LEGS
+        UpdateSpritePos16 ENEMY3_SPRITE_HEAD, ENEMY3_SPRITE_LEGS, ENEMY3_DATA + ENEMY_SPRITE_WORLD_X, ENEMY3_DATA + ENEMY_SPRITE_WORLD_Y
+
+        AnimateEnemy ENEMY4_DATA, ENEMY4_SPRITE_HEAD, ENEMY4_SPRITE_LEGS
+        UpdateSpritePos16 ENEMY4_SPRITE_HEAD, ENEMY4_SPRITE_LEGS, ENEMY4_DATA + ENEMY_SPRITE_WORLD_X, ENEMY4_DATA + ENEMY_SPRITE_WORLD_Y
+    .no_update_enemy_3
     ret
 
 export update_enemies_data, update_enemies_visuals
