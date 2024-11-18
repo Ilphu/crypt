@@ -15,6 +15,7 @@ section "enemy", rom0
 
 update_enemies_data:
     UpdateEnemyData ENEMY1_DATA, ENEMY1_SPRITE_HEAD, ENEMY1_SPRITE_LEGS, ENEMY2_DATA, ENEMY3_DATA, ENEMY4_DATA
+    ;UpdateSpiritData SPIRIT_DATA, SPIRIT_SPRITE
 
     ld a, [rGSF]
     bit rGSB_LVL2, a

@@ -94,16 +94,17 @@ def TIMER_SPRITE_TENS_Y_START          equ (4 + SPRITE_Y_OFFSET)
 def TIMER_SPRITE_ONES_X_START          equ (TIMER_SPRITE_TENS_X_START + TILE_WIDTH)
 def TIMER_SPRITE_ONES_Y_START          equ TIMER_SPRITE_TENS_Y_START
 
-def SPIRIT_SPRITE_HEAD equ (_OAMRAM + (12 * sizeof_OAM_ATTRS))
+def SPIRIT_SPRITE equ (_OAMRAM + (12 * sizeof_OAM_ATTRS))
 
-def SPIRIT_SPRITE_HEAD_X_START          equ (3 * TILE_WIDTH) 
-def SPIRIT_SPRITE_HEAD_Y_START          equ (10 * TILE_WIDTH)
+def SPIRIT_SPRITE_X_START              equ (3 * TILE_WIDTH) 
+def SPIRIT_SPRITE_Y_START              equ (10 * TILE_WIDTH)
 
 ; initializes all neccessary sprites
 macro InitSprites
     InitEnemy ENEMY1_DATA, ENEMY1_SPRITE_HEAD, ENEMY1_SPRITE_LEGS, \
               ENEMY1_SPRITE_HEAD_X_START, ENEMY1_SPRITE_HEAD_Y_START, \
               ENEMY1_SPRITE_LEGS_X_START, ENEMY1_SPRITE_LEGS_Y_START
+    InitSpirit SPIRIT_DATA, SPIRIT_SPRITE, SPIRIT_SPRITE_X_START, SPIRIT_SPRITE_Y_START
     ld a, [rGSF]
     bit rGSB_LVL2, a
     jr z, .no_init_enemy_2
@@ -151,6 +152,22 @@ macro UpdateSpritePos16
     ld [\1 + OAMA_Y], a
     add TILE_WIDTH
     ld [\2 + OAMA_Y], a
+endm
+
+macro UpdateSpritePos8
+    ld a, [rSCX]
+    ld b, a
+    ld a, [\2]
+    add SPRITE_X_OFFSET
+    sub b
+    ld [\1 + OAMA_X], a
+
+    ld a, [rSCY]
+    ld b, a
+    ld a, [\3]
+    add SPRITE_Y_OFFSET
+    sub b
+    ld [\1 + OAMA_Y], a
 endm
 
 macro TileIndexY

@@ -23,9 +23,8 @@ def SPIRIT_DEFAULT_MOVEB_Y          equ ($01)
 
 ; Relative memory position of spirit traits from \1
 rsreset
-def SPIRIT_FIRST_ANI_FRAME_HEAD      rb 1 
-def SPIRIT_FIRST_ANI_FRAME_LEGS      rb 1 
-def SPIRIT_LAST_ANI_FRAME_HEAD       rb 1
+def SPIRIT_FIRST_ANI_FRAME           rb 1 
+def SPIRIT_LAST_ANI_FRAME            rb 1
 def SPIRIT_ANI_DELAY                 rb 1
 def SPIRIT_ANI_DELAY_STATE           rb 1
 def SPIRIT_SPRITE_WORLD_X            rb 1
@@ -41,7 +40,7 @@ def SPIRIT_ANIM_CHANGED              rb 1
 def SPIRIT_COLLISION_FLAGS           rb 1
 def SPIRIT_DEFAULT_PATHING_FLAGS     rb 1
 
-def SPIRIT_ATTRIBUTES_SIZE           equ (17)
+def SPIRIT_ATTRIBUTES_SIZE           equ (15)
 
 ; Clears the WRAM bank of spirit attributes starting at \1
 macro ClearSpiritWram
@@ -60,33 +59,28 @@ endm
 macro InitSpirit
     InitSpiritAnimation \1, \2, \3
 
-    copy [\1 + SPIRIT_SPRITE_WORLD_X], \4
-    copy [\1 + SPIRIT_SPRITE_WORLD_Y], \5
-    copy [\1 + SPIRIT_DISTANCE_TO_CHAR_X], CHARACTER_SPRITE_HEAD_X_START - \4
-    copy [\1 + SPIRIT_DISTANCE_TO_CHAR_Y], CHARACTER_SPRITE_HEAD_Y_START - \5
+    copy [\1 + SPIRIT_SPRITE_WORLD_X], \3
+    copy [\1 + SPIRIT_SPRITE_WORLD_Y], \4
+    copy [\1 + SPIRIT_DISTANCE_TO_CHAR_X], CHARACTER_SPRITE_HEAD_X_START - \3
+    copy [\1 + SPIRIT_DISTANCE_TO_CHAR_Y], CHARACTER_SPRITE_HEAD_Y_START - \4
 
     copy [\1 + SPIRIT_MOVEMENT_DELAY], INIT_SPIRIT_MOVEMENT_DELAY
     copy [\1 + SPIRIT_MOVEMENT_DELAY_STATE], INITIAL_DELAY
 
     ; Init the head and legs of our SPIRIT sprite
-    copy [\2 + OAMA_X], \4
-    copy [\2 + OAMA_Y], \5
-    copy [\2 + OAMA_TILEID], [\1 + SPIRIT_FIRST_ANI_FRAME_HEAD]
+    copy [\2 + OAMA_X], \3
+    copy [\2 + OAMA_Y], \4
+    copy [\2 + OAMA_TILEID], [\1 + SPIRIT_FIRST_ANI_FRAME]
     copy [\2 + OAMA_FLAGS], OAMF_PAL0 | OAMF_XFLIP
-    
-    copy [\3 + OAMA_X], \6
-    copy [\3 + OAMA_Y], \7
-    copy [\3 + OAMA_TILEID], [\1 + SPIRIT_FIRST_ANI_FRAME_LEGS]
-    copy [\3 + OAMA_FLAGS], OAMF_PAL0 | OAMF_XFLIP
 endm
 
 ; Initializing the animations for the spirit
 ; \1: Spirit data memory chunk
 ; \2: Spirit head OAM location, \3: Spirit legs OAM location
 macro InitSpiritAnimation
-    copy [\1 + SPIRIT_FIRST_ANI_FRAME_HEAD],    (SIDE_ANIMATION_START + SPIRIT_ANIMATION_OFFSET)
-    copy [\1 + SPIRIT_FIRST_ANI_FRAME_LEGS],    (SIDE_ANIMATION_START + LEGS_TILE_OFFSET + SPIRIT_ANIMATION_OFFSET)
-    copy [\1 + SPIRIT_LAST_ANI_FRAME_HEAD],     (SIDE_ANIMATION_END + SPIRIT_ANIMATION_OFFSET)
+    copy [\1 + SPIRIT_FIRST_ANI_FRAME],         (SPIRIT_ANIMATION_START)
+    ;copy [\1 + SPIRIT_FIRST_ANI_FRAME_LEGS],    (SIDE_ANIMATION_START + LEGS_TILE_OFFSET + SPIRIT_ANIMATION_OFFSET)
+    copy [\1 + SPIRIT_LAST_ANI_FRAME],          (SPIRIT_ANIMATION_END)
     
     copy [\1 + SPIRIT_SPRITE_ANIMATION],        (RIGHT_ANIMATION_FLAG)
     copy [\1 + PREV_SPIRIT_SPRITE_ANIMATION],   (IDLE_ANIMATION_FLAG)
@@ -782,7 +776,7 @@ endm
 ; \1: Spirit data memory chunk
 ; \2: Spirit head OAM location, \3: Spirit legs OAM location
 macro SpiritSetLeftAnim
-    copy [\1 + SPIRIT_FIRST_ANI_FRAME_HEAD], SIDE_ANIMATION_START + SPIRIT_ANIMATION_OFFSET
+    copy [\1 + SPIRIT_FIRST_ANI_FRAME], SIDE_ANIMATION_START + SPIRIT_ANIMATION_OFFSET
     copy [\1 + SPIRIT_FIRST_ANI_FRAME_LEGS], SIDE_ANIMATION_START + LEGS_TILE_OFFSET + SPIRIT_ANIMATION_OFFSET
     copy [\1 + SPIRIT_LAST_ANI_FRAME_HEAD], SIDE_ANIMATION_END + SPIRIT_ANIMATION_OFFSET
     ;copy [\2 + OAMA_FLAGS], OAMF_PAL0
@@ -793,7 +787,7 @@ endm
 ; \1: Spirit data memory chunk
 ; \2: Spirit head OAM location, \3: Spirit legs OAM location
 macro SpiritSetRightAnim
-    copy [\1 + SPIRIT_FIRST_ANI_FRAME_HEAD], SIDE_ANIMATION_START + SPIRIT_ANIMATION_OFFSET
+    copy [\1 + SPIRIT_FIRST_ANI_FRAME], SIDE_ANIMATION_START + SPIRIT_ANIMATION_OFFSET
     copy [\1 + SPIRIT_FIRST_ANI_FRAME_LEGS], SIDE_ANIMATION_START + LEGS_TILE_OFFSET + SPIRIT_ANIMATION_OFFSET
     copy [\1 + SPIRIT_LAST_ANI_FRAME_HEAD], SIDE_ANIMATION_END + SPIRIT_ANIMATION_OFFSET
     ;copy [\2 + OAMA_FLAGS], OAMF_PAL0 | OAMF_XFLIP
@@ -804,7 +798,7 @@ endm
 ; \1: Spirit data memory chunk
 ; \2: Spirit head OAM location, \3: Spirit legs OAM location
 macro SpiritSetUpAnim
-    copy [\1 + SPIRIT_FIRST_ANI_FRAME_HEAD], UP_ANIMATION_START + SPIRIT_ANIMATION_OFFSET
+    copy [\1 + SPIRIT_FIRST_ANI_FRAME], UP_ANIMATION_START + SPIRIT_ANIMATION_OFFSET
     copy [\1 + SPIRIT_FIRST_ANI_FRAME_LEGS], UP_ANIMATION_START + LEGS_TILE_OFFSET + SPIRIT_ANIMATION_OFFSET
     copy [\1 + SPIRIT_LAST_ANI_FRAME_HEAD], UP_ANIMATION_END + SPIRIT_ANIMATION_OFFSET
 endm
@@ -813,7 +807,7 @@ endm
 ; \1: Spirit data memory chunk
 ; \2: Spirit head OAM location, \3: Spirit legs OAM location
 macro SpiritSetDownAnim
-    copy [\1 + SPIRIT_FIRST_ANI_FRAME_HEAD], DOWN_ANIMATION_START + SPIRIT_ANIMATION_OFFSET
+    copy [\1 + SPIRIT_FIRST_ANI_FRAME], DOWN_ANIMATION_START + SPIRIT_ANIMATION_OFFSET
     copy [\1 + SPIRIT_FIRST_ANI_FRAME_LEGS], DOWN_ANIMATION_START + LEGS_TILE_OFFSET + SPIRIT_ANIMATION_OFFSET
     copy [\1 + SPIRIT_LAST_ANI_FRAME_HEAD], DOWN_ANIMATION_END + SPIRIT_ANIMATION_OFFSET
 endm
@@ -889,7 +883,7 @@ macro UpdateSpiritAnimationX
 
         SpiritSetLeftAnim \1, \2, \3
     .reset_spirit_animation_x\@
-        copy [\2 + OAMA_TILEID], [\1 + SPIRIT_FIRST_ANI_FRAME_HEAD]
+        copy [\2 + OAMA_TILEID], [\1 + SPIRIT_FIRST_ANI_FRAME]
         copy [\3 + OAMA_TILEID], [\1 + SPIRIT_FIRST_ANI_FRAME_LEGS]
     .no_x_anim_update\@
 endm
@@ -917,7 +911,7 @@ macro UpdateSpiritAnimationY
 
         SpiritSetDownAnim \1, \2, \3
     .reset_spirit_animation_y\@
-        copy [\2 + OAMA_TILEID], [\1 + SPIRIT_FIRST_ANI_FRAME_HEAD]
+        copy [\2 + OAMA_TILEID], [\1 + SPIRIT_FIRST_ANI_FRAME]
         copy [\3 + OAMA_TILEID], [\1 + SPIRIT_FIRST_ANI_FRAME_LEGS]
     .no_y_anim_update\@
 endm
@@ -957,7 +951,7 @@ macro AnimateSpirit
     ; if we needed to reset set the sprite back to their first animations in
     ; the sprite sheet
     .reset\@
-        copy [\2 + OAMA_TILEID], [\1 + SPIRIT_FIRST_ANI_FRAME_HEAD]
+        copy [\2 + OAMA_TILEID], [\1 + SPIRIT_FIRST_ANI_FRAME]
         copy [\3 + OAMA_TILEID], [\1 + SPIRIT_FIRST_ANI_FRAME_LEGS]
         copy [\1 + SPIRIT_ANIM_CHANGED], ANIM_UNCHANGED_FLAG
 
@@ -975,7 +969,7 @@ endm
 
 macro UpdateSpiritData
     UpdateSpiritIntendedMovement \1, \2, \3
-    UpdateSpiritCollisionFlags \1, \2, \3, \4
+    ; UpdateSpiritCollisionFlags \1, \2, \3, \4
     UpdateIntendedCollisionSpirit \1, \2, \3
     ApplyIntendedMovementSpirit \1, \2, \3
     UpdateSpiritAnimationState \1, \2, \3
